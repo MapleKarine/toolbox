@@ -124,7 +124,8 @@ function share(el) {
     .then(r => r.json())
     .then(text => {
       key = text;
-      document.getElementById('share-link').innerHTML = `<a href="${window.location.href}#${key}">${key}</a>`
+      document.getElementById('share-link').innerHTML = `<a href="${window.location.href}#${key}">${key}</a>`;
+      el.disabled = false;
     })
 }
 
