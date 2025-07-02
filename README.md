@@ -2,4 +2,4 @@
 
 Tools for conlanging
 
-- [Gloss](https://maplekarine.github.io/toolbox/Gloss) — Tool for glossing sentences
+- [Gloss](https://maplekarine.github.io/toolbox/gloss) — Tool for glossing sentences
