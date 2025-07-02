@@ -1,0 +1,282 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <meta property="og:title" content="Glosser" />
+    <meta name="description" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Maple Karine Toolbox" >
+    <meta name="theme-color" content="#6d72c6">
+    <title>Glosser</title>
+    <link rel="stylesheet" type="text/css" href="/toolbox/css/style.css">
+    <link rel="stylesheet" href="codemirror/codemirror.css">
+    <script src="codemirror/codemirror.js"></script>
+    <script src="codemirror/closebrackets.js"></script>
+    <script src="codemirror/simple.js"></script>
+    <script src="codemirror/highlight.js"></script>
+    <script src="/toolbox/css/theme-toggle.js"></script>
+</head>
+<body>
+<div id="article-header">
+    <div class="nav">
+        <button tabindex="-1" id="theme-switch" title="Mudar tema" aria-label="Mudar tema">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+        <path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm5.657-8.157a.75.75 0 0 1 0 1.061l-1.061 1.06a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734l1.06-1.06a.75.75 0 0 1 1.06 0Zm-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0ZM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0ZM3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8Zm13 0a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8Zm-8 5a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13Zm3.536-1.464a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061ZM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.751.751 0 0 1-.018 1.042.751.751 0 0 1-1.042.018l-1.06-1.06a.75.75 0 0 1 0-1.06Z"></path>
+        </svg>
+        </button>
+    </div>
+</div>
+<div id="article">
+<article>
+<div style="
+     display: flex;
+     flex-direction: column;
+     margin: 40px 0px;
+">
+<div id="input-container">
+<textarea id="gloss-input" style="
+    width: 100%;
+    resize: vertical;
+" rows=10 spellcheck="false">! gwira dweri wonuri
+* gwira dweri wonu-ri
+  ler esse.OBQ livro-OBQ
+> "Leia esse livro"</textarea>
+<div style="margin: 5px;">
+  <button onclick="share(this)" id="share-button">Compartilhar</button>
+  <span id="share-link"></span>
+</div>
+</div>
+<p id="transcription-result">...</p>
+</div>
+<style>
+.hl0 { font-weight: bold; }
+.hl1 { color: #fb464c; font-weight: bold; }
+.hl2 { color: #027aff; font-weight: bold; }
+.hl3 { color: #44cf6e; font-weight: bold; }
+.hl4 { color: #e0de71; font-weight: bold; }
+.hl5 { color: #fa99cd; font-weight: bold; }
+.hl6 { color: #e9973f; font-weight: bold; }
+.hl7 { color: #b45248; font-weight: bold; }
+.hl8 { color: #8cdaec; font-weight: bold; }
+.hl9 { color: #9bddb1; font-weight: bold; }
+
+.cm-hl0 { font-weight: bold; }
+.cm-hl1 { color: #fb464c; font-weight: bold; }
+.cm-hl2 { color: #027aff; font-weight: bold; }
+.cm-hl3 { color: #44cf6e; font-weight: bold; }
+.cm-hl4 { color: #e0de71; font-weight: bold; }
+.cm-hl5 { color: #fa99cd; font-weight: bold; }
+.cm-hl6 { color: #e9973f; font-weight: bold; }
+.cm-hl7 { color: #b45248; font-weight: bold; }
+.cm-hl8 { color: #8cdaec; font-weight: bold; }
+.cm-hl9 { color: #9bddb1; font-weight: bold; }
+
+.CodeMirror {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+}
+
+.CodeMirror-cursor {
+  border-left: 1px solid var(--fg-color);
+  border-right: none;
+  width: 0;
+}
+
+.CodeMirror-selected { background: var(--link-color); }
+
+.gloss-cell {
+  display: table-cell;
+  padding-bottom: 0.2em;
+  padding-right: 1em;
+  text-wrap: nowrap;
+}
+
+.gloss-row {
+  display: table-row;
+}
+</style>
+<script>
+const input = document.getElementById("gloss-input");
+const transcription_output = document.getElementById("transcription-result");
+
+let editor = CodeMirror.fromTextArea(input, {
+  lineNumbers: false,
+  autoCloseBrackets: {
+    'pairs': '(){}'
+  },
+});
+
+let key = undefined;
+function share(el) {
+  el.disabled = true;
+  const body = { value: editor.getValue(), key:key };
+  fetch(`https://rosidb.netlify.app/.netlify/functions/kv`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  })
+    .then(r => r.json())
+    .then(text => {
+      key = text;
+      document.getElementById('share-link').innerHTML = `<a href="${window.location.href}#${key}">${key}</a>`
+    })
+}
+
+const FMT_RE = /(\([^()]+\)\d?)/g
+const ABBR_RE = /\{([A-Z0-9.>-]+)(?:\:([^}]+))?\}/g
+
+function fmt(text) {
+  const pieces = text.split(FMT_RE);
+  const cell = document.createElement("span");
+
+  for (let j = 0; j < pieces.length; j++) {
+    let text = pieces[j];
+    let class_ = '';
+    if (text.match(FMT_RE)) {
+      const c= text[text.length-1];
+      if (c==')') {
+        text = text.slice(1, -1);
+      } else {
+        class_ = 'hl'+c
+        text = text.slice(1, -2);
+      }
+    }
+    let span = document.createElement("span");
+    span.innerHTML = text.replaceAll('<','&lt;')
+    if (class_) span.classList.add(class_);
+    cell.appendChild(span);
+  }
+
+  return cell;
+}
+
+function translate(message) {
+  let rows = message.split("\n").filter((row) => row.length > 0);
+
+  const container = document.createElement("div");
+
+  rows = rows.map(s => s.replaceAll(ABBR_RE, (m) => m.replaceAll(' ','\2')))
+  rows = rows.map(s => s.replaceAll(FMT_RE, (m) => m.replaceAll(' ','\2')))
+
+  let lines = rows.map(s => s.trim().replaceAll('_','\u00a0').split(/ +/))
+
+  let rest_ = null;
+  if (lines && lines[0] && lines[0][0].trim() == "!") {
+    const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
+    container.appendChild(fmt(text));
+    lines = lines.slice(1);
+  }
+
+
+  let italic = lines.map(l => l[0]=='*');
+  lines.forEach((l,i) => {if (italic[i]) l.shift()})
+
+  const min = Math.max(...lines.map(s=>s.length));
+
+  const table = document.createElement("div");
+  table.style.display = 'table';
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i][0] == '>') {
+      lines[i] = lines[i].slice(1)
+      rest_ = lines.slice(i).map(s=>s.join(' ').replaceAll('\2',' ')).join('<br>')
+      break;
+    }
+    let tr = document.createElement("div");
+    tr.classList.add('gloss-row');
+    if (italic[i]) tr.style.fontStyle = 'italic';
+    for (var j = 0; j < min; j++) {
+      const col = lines[i][j] ?? '';
+      let td = document.createElement("span");
+      td.classList.add('gloss-cell');
+
+      td.appendChild(fmt(col.replaceAll('\2',' ')))
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+
+  container.appendChild(table);
+
+  if (rest_) {
+    const rest = document.createElement("p");
+    rest.style.marginBlockStart = '0em';
+    rest.appendChild(fmt(rest_));
+    container.appendChild(rest)
+  }
+
+  container.style.marginBottom = '1em';
+
+  return container
+}
+
+const none = document.createTextNode("...");
+function update() {
+  const value = editor.getValue()
+  if (value.trim() == '') {
+    transcription_output.replaceChildren(none);
+    return;
+  }
+  const container = document.createElement('div');
+  value.split(/\n--+\n/).forEach(v => {
+    container.appendChild(translate(v));
+  });
+  transcription_output.replaceChildren(container);
+}
+
+editor.on('change', update);
+
+</script>
+<div id="guide-container">
+<hr>
+<p>O texto escrito é dividido em colunas a cada espaço, para escrever espaços sem separar em colunas escreva o texto entre parênteses, exemplo: <code>(o sol) brilha</code>.</p>
+<p>Toda linha é alinhada de acordo com os espaços, para fazer um texto com multiplas linhas escreva uma linha somente com os caracteres <code>--</code></p>
+<p>Para deixar a primeira linha como título (não separado em colunas), comece a linha com uma exclamação <code>!</code> e um espaço</p>
+<p>Para deixar uma linha em <em>itálico</em>, comece a linha com um asterisco <code>*</code> e um espaço</p>
+<p>Para inserir texto depois do alinhamento a ultima linha tem que ter um sinal de maior <code>></code> e um espaço</p>
+<p>Exemplo completo:</p>
+<pre>
+! gwira dweri wonuri
+* gwira dweri wonu-ri
+  ler esse.OBQ livro-OBQ
+> "Leia esse livro"
+</pre>
+<p>Para colorir uma parte do texto coloque o texto entre parênteses e um número com a cor no final, exemplo: <code>O (gato)1 (mia)2</code>.</p>
+<p>Cores disponíveis de 0-9:<br>
+  <span class='hl0'>Cor0</span>
+  <span class='hl1'>Cor1</span>
+  <span class='hl2'>Cor2</span>
+  <span class='hl3'>Cor3</span>
+  <span class='hl4'>Cor4</span>
+  <span class='hl5'>Cor5</span>
+  <span class='hl6'>Cor6</span>
+  <span class='hl7'>Cor7</span>
+  <span class='hl8'>Cor8</span>
+  <span class='hl9'>Cor9</span>
+</p>
+</div>
+</article>
+</div>
+<script>
+if (window.location.hash.length > 1) {
+  document.getElementById('input-container').style.display = 'none';
+  document.getElementById('guide-container').style.display = 'none';
+  const key = window.location.hash.slice(1)
+
+  fetch(`https://rosidb.netlify.app/.netlify/functions/kv?key=${key}`)
+    .then(r => r.text())
+    .then(text => {
+      editor.setValue(text);
+      update();
+    })
+} else {
+  update();
+}
+</script>
+</body>
+</html>
