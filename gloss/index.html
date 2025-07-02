@@ -149,7 +149,7 @@ function fmt(text) {
       }
     }
     let span = document.createElement("span");
-    span.innerHTML = text.replaceAll('<','&lt;')
+    span.innerHTML = text.replaceAll('<','&lt;').replaceAll('\n','<br>')
     if (class_) span.classList.add(class_);
     cell.appendChild(span);
   }
@@ -185,7 +185,7 @@ function translate(message) {
   for (let i = 0; i < lines.length; i++) {
     if (lines[i][0] == '>') {
       lines[i] = lines[i].slice(1)
-      rest_ = lines.slice(i).map(s=>s.join(' ').replaceAll('\2',' ')).join('<br>')
+      rest_ = lines.slice(i).map(s=>s.join(' ').replaceAll('\2',' ')).join('\n')
       break;
     }
     let tr = document.createElement("div");
