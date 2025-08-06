@@ -40,12 +40,13 @@
 <textarea id="gloss-input" style="
     width: 100%;
     resize: vertical;
-" rows=10 spellcheck="false">! gwira dweri wonuri
-* gwira dweri wonu-ri
-  ler esse.OBQ livro-OBQ
-> "Leia esse livro"</textarea>
+" rows=10 spellcheck="false">(1) Indonesian ((Sneddon 1996:237))
+* Mereka di Jakarta sekarang.
+  They in Jakarta now
+> 'They are in Jakarta now.'</textarea>
 <div style="margin: 5px;">
-  <button onclick="share(this)" id="share-button">Compartilhar</button>
+  <button onclick="copy(this)" id="share-button">Copy</button>
+  <button onclick="share(this)" id="share-button">Share</button>
   <span id="share-link"></span>
 </div>
 </div>
@@ -80,6 +81,26 @@
   border: 1px solid var(--table-border);
 }
 
+pre {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+  padding: 4px;
+}
+
+code {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+  padding: 1px 4px;
+}
+
+.CodeMirror-gutters {
+  border-right: 1px solid var(--table-border);
+  background-color: var(--bg-color);
+  white-space: nowrap;
+}
+
 .CodeMirror-cursor {
   border-left: 1px solid var(--fg-color);
   border-right: none;
@@ -98,168 +119,73 @@
 .gloss-row {
   display: table-row;
 }
+
+ol {
+  counter-reset: list;
+  list-style: none;
+}
+ol li {
+  position: relative;
+}
+ol li:before {
+  content: "(" counter(list) ") ";
+  counter-increment: list;
+  position: absolute;
+  left: -1.4em;
+}
 </style>
-<script>
-const input = document.getElementById("gloss-input");
-const transcription_output = document.getElementById("transcription-result");
-
-let editor = CodeMirror.fromTextArea(input, {
-  lineNumbers: false,
-  autoCloseBrackets: {
-    'pairs': '(){}'
-  },
-});
-
-let key = undefined;
-function share(el) {
-  el.disabled = true;
-  const body = { value: editor.getValue(), key:key };
-  fetch(`https://rosidb.netlify.app/.netlify/functions/kv`, {
-    method: 'POST',
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-    .then(r => r.json())
-    .then(text => {
-      key = text;
-      document.getElementById('share-link').innerHTML = `<a href="${window.location.href}#${key}">${key}</a>`;
-      el.disabled = false;
-    })
-}
-
-const FMT_RE = /(\([^()]+\)\d?)/g
-const ABBR_RE = /\{([A-Z0-9.>-]+)(?:\:([^}]+))?\}/g
-
-function fmt(text) {
-  const pieces = text.split(FMT_RE);
-  const cell = document.createElement("span");
-
-  for (let j = 0; j < pieces.length; j++) {
-    let text = pieces[j];
-    let class_ = '';
-    if (text.match(FMT_RE)) {
-      const c= text[text.length-1];
-      if (c==')') {
-        text = text.slice(1, -1);
-      } else {
-        class_ = 'hl'+c
-        text = text.slice(1, -2);
-      }
-    }
-    let span = document.createElement("span");
-    span.innerHTML = text.replaceAll('<','&lt;').replaceAll('\n','<br>')
-    if (class_) span.classList.add(class_);
-    cell.appendChild(span);
-  }
-
-  return cell;
-}
-
-function translate(message) {
-  let rows = message.split("\n").filter((row) => row.length > 0);
-
-  const container = document.createElement("div");
-
-  rows = rows.map(s => s.replaceAll(ABBR_RE, (m) => m.replaceAll(' ','\2')))
-  rows = rows.map(s => s.replaceAll(FMT_RE, (m) => m.replaceAll(' ','\2')))
-
-  let lines = rows.map(s => s.trim().replaceAll('_','\u00a0').split(/ +/))
-
-  let rest_ = null;
-  if (lines && lines[0] && lines[0][0].trim() == "!") {
-    const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
-    container.appendChild(fmt(text));
-    lines = lines.slice(1);
-  }
-
-
-  let italic = lines.map(l => l[0]=='*');
-  lines.forEach((l,i) => {if (italic[i]) l.shift()})
-
-  const min = Math.max(...lines.map(s=>s.length));
-
-  const table = document.createElement("div");
-  table.style.display = 'table';
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i][0] == '>') {
-      lines[i] = lines[i].slice(1)
-      rest_ = lines.slice(i).map(s=>s.join(' ').replaceAll('\2',' ')).join('\n')
-      break;
-    }
-    let tr = document.createElement("div");
-    tr.classList.add('gloss-row');
-    if (italic[i]) tr.style.fontStyle = 'italic';
-    for (var j = 0; j < min; j++) {
-      const col = lines[i][j] ?? '';
-      let td = document.createElement("span");
-      td.classList.add('gloss-cell');
-
-      td.appendChild(fmt(col.replaceAll('\2',' ')))
-      tr.appendChild(td);
-    }
-    table.appendChild(tr);
-  }
-
-  container.appendChild(table);
-
-  if (rest_) {
-    const rest = document.createElement("p");
-    rest.style.marginBlockStart = '0em';
-    rest.appendChild(fmt(rest_));
-    container.appendChild(rest)
-  }
-
-  container.style.marginBottom = '1em';
-
-  return container
-}
-
-const none = document.createTextNode("...");
-function update() {
-  const value = editor.getValue()
-  if (value.trim() == '') {
-    transcription_output.replaceChildren(none);
-    return;
-  }
-  const container = document.createElement('div');
-  value.split(/\n--+\n/).forEach(v => {
-    container.appendChild(translate(v));
-  });
-  transcription_output.replaceChildren(container);
-}
-
-editor.on('change', update);
-
-</script>
+<script src="gloss_abrev.js"></script>
+<script src="index.js"></script>
 <div id="guide-container">
 <hr>
-<p>O texto escrito é dividido em colunas a cada espaço, para escrever espaços sem separar em colunas escreva o texto entre parênteses, exemplo: <code>(o sol) brilha</code>.</p>
-<p>Toda linha é alinhada de acordo com os espaços, para fazer um texto com multiplas linhas escreva uma linha somente com os caracteres <code>--</code></p>
-<p>Para deixar a primeira linha como título (não separado em colunas), comece a linha com uma exclamação <code>!</code> e um espaço</p>
-<p>Para deixar uma linha em <em>itálico</em>, comece a linha com um asterisco <code>*</code> e um espaço</p>
-<p>Para inserir texto depois do alinhamento a ultima linha tem que ter um sinal de maior <code>></code> e um espaço</p>
-<p>Exemplo completo:</p>
-<pre>
-! gwira dweri wonuri
-* gwira dweri wonu-ri
-  ler esse.OBQ livro-OBQ
-> "Leia esse livro"
+<h2>Usage</h2>
+<pre style="text-wrap-mode: wrap;">
+! (Mboronhe)0
+* se’e kosa hora, se’e ko karemba
+  {NEG} need tree, {NEG} me good
+> "I need no trees, they disappoint me"
 </pre>
-<p>Para colorir uma parte do texto coloque o texto entre parênteses e um número com a cor no final, exemplo: <code>O (gato)1 (mia)2</code>.</p>
-<p>Cores disponíveis de 0-9:<br>
-  <span class='hl0'>Cor0</span>
-  <span class='hl1'>Cor1</span>
-  <span class='hl2'>Cor2</span>
-  <span class='hl3'>Cor3</span>
-  <span class='hl4'>Cor4</span>
-  <span class='hl5'>Cor5</span>
-  <span class='hl6'>Cor6</span>
-  <span class='hl7'>Cor7</span>
-  <span class='hl8'>Cor8</span>
-  <span class='hl9'>Cor9</span>
+<p>Lines starting with <code>! </code>&nbsp;will not be split, they may be used as a description, these lines must come before the glossing.</p>
+<p>Glossing lines will be split by each space character, and may start with <code>* </code>&nbsp;to make it <em>italic</em>. To preserve space characters you can use <code>__</code> or enclose text between parentheses, for example <code>to__be or not to__be</code> or <code>(to be) or not (to be)</code>.</p>
+<p>A line starting with <code>&gt; </code>&nbsp;stops the glossing, and following text will be a paragraph, it can be used to provide a translation or additional notes.</p>
+
+<p>You can start another glossing by separating them with a line containing two or more hyphens <code>--</code>.</p>
+<p>The first line of the glossing may start with <code># </code>&nbsp;to make a heading.</p>
+<p>The first line can start with a number enclosed in parentheses like <code>(1) </code>&nbsp;to make a numbered gloss, the numbering is automatic and the number in parentheses is ignored (they can all be 1). The line acts the same way as an exclamation point marked line.</p>
+
+<h3>Colors and Annotations</h3>
+
+<p>Text between parentheses may be colored, assign a color writting a number from 0 to 9 after the parentheses, eg: <code>The (cat)1 (meows)2</code>.</p>
+<p>Color list:<br>
+  <span class='hl0'>Color0</span>
+  <span class='hl1'>Color1</span>
+  <span class='hl2'>Color2</span>
+  <span class='hl3'>Color3</span>
+  <span class='hl4'>Color4</span>
+  <span class='hl5'>Color5</span>
+  <span class='hl6'>Color6</span>
+  <span class='hl7'>Color7</span>
+  <span class='hl8'>Color8</span>
+  <span class='hl9'>Color9</span>
 </p>
+<p>To write regular parenthesis you need double parenthesis <code>((Example))</code>.</p>
+<p>Use capital letters between curly brackets to make a glossing abbreviation, you can hover your mouse over them to see their meaning. There is a huge list of builtin abbreviations, but you can make your own like the following: <code>{DEL:Delative}</code>.</p>
+<p>The special character ∅ can be shown with <code>&null;</code></p>
+<h3>Cheatsheet</h3>
+<pre style="text-wrap-mode: wrap;">
+# Complex example
+(1) (Examplish)0 ((Maple 2025))
+*   si-&null; (da= ke-l)2 (mek-a)1 gev-ifo
+    she-{NOM} ({DEF}= cat-{DAT}) milk-{ACC} give-{AUD:Auditory Evidential}
+>   "She gives the cat milk"
+--
+(2) (Latin)0
+*   (Lac)1 (feli)2 dat
+    milk.{ACC} cat.{DAT} give.{3SG}
+>   "((S))he gives the cat milk"
+---
+> That comparison show some quite interesting observations about Latin and Examplish...
+</pre>
 </div>
 </article>
 </div>
