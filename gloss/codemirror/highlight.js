@@ -8,6 +8,7 @@ CodeMirror.defineSimpleMode("simplemode", {
 		// {regex: /(\([^()]+\)\d?)/, token: "hr" },
 		// {regex: /\\\\/, token: "hr" },
 		{regex: /(\{)([A-Z0-9.>-]+)(\:[^}]*)?(\})/, token: [null, "tag", null, null] },
+		{regex: /(\{)(_[^}]+)(\})/, token: [null, "tag", null] },
 		{regex: /\-\-+/, token: "hr", sol: true },
 		{regex: /\&null\;|\_\_/, token: "string-2"},
 		{regex: /(\()?(\(\()|(\)\))(\))?/, token: [null, "string-2", "string-2", null]},

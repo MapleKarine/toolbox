@@ -34,6 +34,7 @@ function share(el) {
 
 const FMT_RE = /(\([^()]*\)\d?)/g
 const ABBR_RE = /\{([A-Z0-9.>-]+)(?:\:([^}]+))?\}/g
+const SUB_RE = /\{_([^}]+)\}/g
 
 
 
@@ -60,7 +61,9 @@ function fmt(text,tag='span') {
       .replaceAll('\uf701', '(')
       .replaceAll('\uf702', ')')
       .replaceAll('&null;', '∅')
+      .replaceAll('&low;', '＿')
       .replaceAll(ABBR_RE, (m, tag, title) => `<abbr title="${title ?? abrev(tag)}">${tag}</abbr>`)
+      .replaceAll(SUB_RE, (m, tag) => `<sub>${tag}</sub>`)
     if (class_) span.classList.add(class_);
     cell.appendChild(span);
   }
@@ -139,6 +142,7 @@ function translate(message, outerContainer) {
     for (let i = 0; i < lmin; i++) {
       const col = lines[i][j] ?? '\u00a0';
       let td = document.createElement("span");
+      td.style.height = '1.4em';
       if (italic[i]) td.style.fontStyle = 'italic';
 
       td.appendChild(fmt(col.replaceAll('\2',' ')))
