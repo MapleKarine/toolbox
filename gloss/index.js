@@ -10,7 +10,13 @@ let editor = CodeMirror.fromTextArea(input, {
 });
 
 function copy() {
-  navigator.clipboard.writeText(editor.getValue());
+  const selection = window.getSelection();
+  const range = document.createRange();
+  range.selectNodeContents(transcription_output);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  document.execCommand('copy');
+  selection.removeAllRanges();
 }
 
 let key = undefined;
@@ -165,19 +171,49 @@ function translate(message, outerContainer) {
   return container
 }
 
+function renderHTML(value) {
+  const container = document.createElement('ol');
+  value.split(/\n--+\n/).forEach(v => {
+    const k = translate(v, container);
+    container.appendChild(k);
+    container.appendChild(document.createElement("br"))
+  });
+
+  return container
+}
+
+const renderingOptions = {
+  'html': renderHTML,
+  'markdown': renderMarkdown,
+  'discord-fancy': renderDiscordFancy,
+}
+let renderingOption = 'html';
+
+
 const none = document.createTextNode("...");
 function update() {
+  if (renderingOption===null) return
+
   const value = editor.getValue()
   if (value.trim() == '') {
     transcription_output.replaceChildren(none);
     return;
   }
-  const container = document.createElement('ol');
-  value.split(/\n--+\n/).forEach(v => {
-    const k = translate(v, container);
-    container.appendChild(k);
-  });
+  const container = renderingOptions[renderingOption](value)
   transcription_output.replaceChildren(container);
+
+  if (renderingOption == 'html') {
+    document.getElementById('share-button').style.display = 'none';
+  } else {
+    document.getElementById('share-button').style.display = 'inline-block';
+  }
+
+  sessionStorage.setItem("glosser-session-input", value);
+}
+
+function loadSession() {
+  const value = sessionStorage.getItem("glosser-session-input");
+  if (value) editor.setValue(value)
 }
 
 editor.on('change', update);

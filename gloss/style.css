@@ -1,0 +1,104 @@
+.hl0 { font-weight: bold; }
+.hl1 { color: #fb464c; font-weight: bold; }
+.hl2 { color: #027aff; font-weight: bold; }
+.hl3 { color: #44cf6e; font-weight: bold; }
+.hl4 { color: #e0de71; font-weight: bold; }
+.hl5 { color: #fa99cd; font-weight: bold; }
+.hl6 { color: #e9973f; font-weight: bold; }
+.hl7 { color: #b45248; font-weight: bold; }
+.hl8 { color: #8cdaec; font-weight: bold; }
+.hl9 { color: #9bddb1; font-weight: bold; }
+
+.cm-hl0 { font-weight: bold; }
+.cm-hl1 { color: #fb464c; font-weight: bold; }
+.cm-hl2 { color: #027aff; font-weight: bold; }
+.cm-hl3 { color: #44cf6e; font-weight: bold; }
+.cm-hl4 { color: #e0de71; font-weight: bold; }
+.cm-hl5 { color: #fa99cd; font-weight: bold; }
+.cm-hl6 { color: #e9973f; font-weight: bold; }
+.cm-hl7 { color: #b45248; font-weight: bold; }
+.cm-hl8 { color: #8cdaec; font-weight: bold; }
+.cm-hl9 { color: #9bddb1; font-weight: bold; }
+
+.CodeMirror {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+}
+
+pre {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+  padding: 4px;
+}
+
+code {
+  color: var(--fg-color);
+  background: var(--bg-color);
+  border: 1px solid var(--table-border);
+  padding: 1px 4px;
+}
+
+.CodeMirror-gutters {
+  border-right: 1px solid var(--table-border);
+  background-color: var(--bg-color);
+  white-space: nowrap;
+}
+
+.CodeMirror-cursor {
+  border-left: 1px solid var(--fg-color);
+  border-right: none;
+  width: 0;
+}
+
+.CodeMirror-selected { background: var(--link-color); }
+
+.gloss-cell {
+  display: table-cell;
+  padding-bottom: 0.2em;
+  padding-right: 1em;
+  text-wrap: nowrap;
+}
+
+.gloss-row {
+  display: table-row;
+}
+
+
+
+#output-options button.selected {
+  background-color: #3636d3;
+  border-color: #3636d3;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 2px;
+}
+
+:root[color-theme="light"] #output-options button.selected {
+  background-color: #4040FF;
+  border-color: black;
+  border-style: solid;
+  padding-block: 2px;
+  padding-inline: 7px;
+  border-width: 1px;
+  border-radius: 2px;
+}
+
+#transcription-result ol {
+  counter-reset: list;
+  list-style: none;
+}
+
+#transcription-result ol li {
+  position: relative;
+}
+
+#transcription-result ol li:before {
+  content: "(" counter(list) ") ";
+  counter-increment: list;
+  position: absolute;
+  left: -40px;
+  width: 30px;
+  text-align: end;
+}
