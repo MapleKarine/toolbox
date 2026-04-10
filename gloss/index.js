@@ -7,6 +7,7 @@ let editor = CodeMirror.fromTextArea(input, {
   autoCloseBrackets: {
     'pairs': '(){}'
   },
+  theme: 'maple-dark',
 });
 
 function copy() {
@@ -184,7 +185,7 @@ function renderHTML(value) {
 
 const renderingOptions = {
   'html': renderHTML,
-  'markdown': renderMarkdown,
+  'plain': renderPlainText,
   'discord-fancy': renderDiscordFancy,
 }
 let renderingOption = 'html';
