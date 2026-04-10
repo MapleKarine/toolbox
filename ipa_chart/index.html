@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <meta property="og:title" content="IPA Chart" />
+    <meta name="description" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Maple Karine Toolbox" >
+    <meta name="theme-color" content="#6d72c6">
+    <title>IPA Chart</title>
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <link rel="stylesheet" href="/assets/codemirror/cm-theme.css">
+    <link rel="stylesheet" href="/assets/codemirror/codemirror.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="vowel_chart.css">
+    <script src="/assets/codemirror/codemirror.js"></script>
+    <script src="/assets/codemirror/closebrackets.js"></script>
+    <script src="/assets/codemirror/simple.js"></script>
+    <script src="codemirror/highlight.js"></script>
+    <script src="/assets/theme-toggle.js"></script>
+
+    <script src="parser.js"></script>
+    <script src="vowel_chart.js"></script>
+    <script src="consonant_table.js"></script>
+</head>
+<body>
+<header>
+    <nav class="top">
+        <a href="/toolbox/" class="button circle transparent"><i class="icon">home</i></a>
+        <span class="max" style="font-weight: bold;">IPA Chart</span>
+        <button tabindex="-1" id="theme-switch" title="Change theme" aria-label="Change theme" class="transparent circle">
+            <i class='icon'>light_mode</i>
+        </button>
+    </nav>
+</header>
+<main id="article">
+<article class="responsive">
+<div style="
+     display: flex;
+     flex-direction: column;
+     margin: 40px 0px;
+">
+    <div id="input-container">
+    <textarea id="gloss-input" style="
+        width: 100%;
+        resize: vertical;
+    " rows=10 spellcheck="false">p t k s h m n a e i o u</textarea>
+    </div>
+
+
+    <div class="grid" oninput="update()">
+        <fieldset class="s12 m6">
+            <legend>Consonant settings</legend>
+            <nav class="grid">
+                <label class="checkbox s12 m1-2"><input u-model="sibilant" type="checkbox"><span>Sibilant column</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="affricate" type="checkbox" checked><span>Stop+Affricate</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="sonorant" type="checkbox"><span>Merge all sonorants</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="nasalTop" type="checkbox"><span>Nasals on top</span></label>
+                <label class="checkbox s12"><input u-model="labialized" type="checkbox" checked><span>Labialized/Palatalized columns</span></label>
+            </nav>
+        </fieldset>
+        <fieldset class="s12 m6 vertical">
+            <legend>Vowel settings</legend>
+            <nav class="vertical">
+                <!-- <nav class="vertical"> -->
+                    <nav class="grid">
+                        <label class="radio s1-2"><input u-model="layout" value="trapezoid" type="radio" name="vowel-layout" checked><span>Trapezoid</span></label>
+                        <label class="radio s1-2"><input u-model="layout" value="triangle" type="radio" name="vowel-layout"><span>Triangle</span></label>
+                    </nav>
+                    <nav class="grid">
+                        <label class="radio s1-2"><input u-model="layout" value="square" type="radio" name="vowel-layout"><span>Square</span></label>
+                        <label class="radio s1-2"><input u-model="layout" value="formant" type="radio" name="vowel-layout"><span>Formant</span></label>
+                    </nav>
+                <!-- </nav> -->
+                <label class="checkbox"><input u-model="centralLowVowel" type="checkbox" name="vowel-layout" checked><span>/a/ is central</span></label>
+            </nav>
+        </fieldset>
+    </div>
+
+    <div id="transcription-result" style="margin: 2rem 0;">...</div>
+</div>
+<script src="index.js"></script>
+<div id="guide-container">
+    <hr>
+    <h2>Usage</h2>
+    <pre style="text-wrap-mode: wrap;">; example phonology
+add voiced bilabial stop "ᵐb"
+add [d] "ⁿd"
+add front "e"
+add back "o"
+p t k s h m n w l
+a i u</pre>
+    <p>The simplest way to use the tool is to paste vowels and consonants in the text box and let it be automatically organized. A finer control of the sounds can be made using the <code class="code">add</code> command.</p>
+    <p>The list of phonemes must be the very last thing in the input.</p>
+    <p>The <code class="code">add</code> command can be followed by a series of keywords <code class="code">voiced bilabial stop</code> or an IPA segment written in square brackets <code class="code">[d]</code> that signifies its position, and a display text, written in quotes <code class="code">"ᵐb"</code>.</p>
+    <p>A line starting with <code class="code">;</code> is ignored.</p>
+    <h3>Keywords</h3>
+    <p>This is the list of consonant keywords:</p>
+    <pre style="overflow-x: auto;">
+bilabial            stop                voiced
+labial              plosive             unvoiced
+labiodental         affricate           voiceless
+dental              lateral             prenasalized
+postalveolar        nasal               aspirated
+alveolar            trill
+retroflex           tap
+alveolopalatal      flap
+velar               fricative
+uvular              approximant
+pharyngeal          ejective
+glottal             implosive
+</pre>
+    <p>This is the list of vowel keywords:</p>
+    <pre style="overflow-x: auto;">
+high                close               near front
+near high           near close          near back
+high mid            close mid           front
+mid                 mid                 central
+low mid             open mid            back
+near low            near open
+low                 open
+</pre>
+    <h3>Vowel Position</h3>
+    <p>Vowels can also be positioned by numerical coordinates, the coordinate <code class="code">(0, 0)</code> corresponds with the [i] position, and <code class="code">(2, 3)</code> with the [ɑ] position. Decimal numbers like <code class="code">(1.5, 1.25)</code> can be used.</p>
+    <h2>Settings</h2>
+    <p>Settings can be changed using the visual interface or with the <code class="code">config &lt;config-name&gt; value</code> command.</p>
+    <p>The value can be <code class="code">true</code>,<code class="code">false</code> or a double quoted string <code class="code">"option"</code>.</p>
+    <pre style="overflow-x: auto;">
+; add a row for alveolar sibilants [s ts dz ...]
+config sibilant true
+
+; merge stops and affricates in the same row
+config affricate true
+
+; merge trills, taps, approximants and laterals in the same row
+config sonorant true
+
+; move nasals to the top, taps and trills to the bottom
+config nasalTop true
+
+; arrange MOA the same order as the oficial IPA chart
+config nasalTop false
+
+; add automatic columns for labialized and palatalized sounds with ʷʲ
+config labialized true
+</pre>
+</div>
+</article>
+</main>
+<script>
+loadSession();
+update();
+</script>
+</body>
+</html>
