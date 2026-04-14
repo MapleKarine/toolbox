@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <meta property="og:title" content="Unicode Analyzer" />
+    <meta name="description" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Maple Karine Toolbox" >
+    <meta name="theme-color" content="#6d72c6">
+    <title>Unicode Analyzer</title>
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <script src="/assets/theme-toggle.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+
+    <style>
+        .emoji-font {
+            font-family: "Noto Sans", "Noto Color Emoji", "Roboto", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, emoji, sans-serif;
+        }
+
+        .mono-font {
+            font-family: monospace;
+            text-align: right;
+        }
+
+        .char-card {
+            padding: 1rem;
+            min-width: 6rem;
+            text-align: center;
+            white-space: pre;
+            cursor: help;
+        }
+
+        .char-card .char {
+            font-size: 3rem;
+        }
+
+        #char-cards-container {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            align-items: center;
+            padding-block: 1.5rem;
+            overflow-x: auto;
+            
+        }
+    </style>
+    <script type="module">
+        import { unicodeName } from "./unicode-name/index.js";
+
+        window.getName = (x) => {
+            return unicodeName(x)
+
+        }
+    </script>
+    <script>
+        function processText(text, normalize, unique) {
+            if (normalize) text = text.normalize('NFD');
+            let array = Array.from(text)
+            if (unique) array = [...new Set(array)];
+            return array;
+        }
+    </script>
+    <script defer src="/assets/alpinejs.min.js"></script>
+</head>
+<body>
+<header>
+    <nav class="top">
+        <a href="/toolbox/" class="button circle transparent"><i class="icon">home</i></a>
+        <span class="max" style="font-weight: bold;">Unicode Analyzer</span>
+        <button tabindex="-1" id="theme-switch" title="Change theme" aria-label="Change theme" class="transparent circle">
+            <i class='icon'>light_mode</i>
+        </button>
+    </nav>
+</header>
+<main x-data="{text: '🍕🫨🫠🦊👩‍❤️‍💋‍👩👨‍❤️‍👨', normalize: false, unique: false}">
+    <div class="field emoji-font" style="--_input: 3.25rem;"><input type="text" name="input" x-model='text' style="font-size: 1.5rem;"></div>
+    <div class="horizontal justify-center emoji-font"><div id="char-cards-container">
+        <template x-for="char in processText(text, normalize, unique)">
+            <div class="char-card border vertical" :title="getName(char)">
+                <div x-text="char" class="char"></div>
+                <div style="padding-top: 1rem; text-decoration: dotted underline;">U+<span x-text="char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')"></span></div>
+            </div>
+        </template>
+    </div></div>
+    <nav>
+        <label class="checkbox"><input type="checkbox" x-model="normalize"><span>Canonical Decomposition</span></label>
+        <label class="checkbox"><input type="checkbox" x-model="unique"><span>Unique only</span></label>
+    </nav>
+    <div class="grid emoji-font">
+        <template x-for="(char, index) in processText(text, normalize, unique)" :key="index">
+            <div class="s12 border grid p-3">
+                <span class="s1" x-text="char"></span>
+                <span class="s9"><a x-text="getName(char)" target="_blank" :href="'https://unicodeplus.com/'+`U+${char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`"></a></span>
+                <span class="s2 mono-font" x-text="`U+${char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}`"></span>
+            </div>
+        </template>
+    </div>
+</main>
+</body>
+</html>
