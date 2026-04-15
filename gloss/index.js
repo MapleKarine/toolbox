@@ -45,40 +45,50 @@ const SUB_RE = /\{_([^}]+)\}/g
 
 
 
-function fmt(text,tag='span') {
-  const pieces = text.split(FMT_RE);
-  const cell = document.createElement(tag);
 
-  for (let j = 0; j < pieces.length; j++) {
-    let text = pieces[j];
-    let class_ = '';
-    if (text.match(FMT_RE)) {
-      const c= text[text.length-1];
-      if (c==')') {
-        text = text.slice(1, -1);
-      } else {
-        class_ = 'hl'+c
-        text = text.slice(1, -2);
-      }
-    }
-    let span = document.createElement("span");
-    span.innerHTML = text
-      .replaceAll('<','&lt;')
-      .replaceAll('\n','<br>')
-      .replaceAll('\uf701', '(')
-      .replaceAll('\uf702', ')')
-      .replaceAll('&null;', '∅')
-      .replaceAll('&low;', '＿')
-      .replaceAll(ABBR_RE, (m, tag, title) => `<abbr title="${title ?? abrev(tag)}">${tag}</abbr>`)
-      .replaceAll(SUB_RE, (m, tag) => `<sub>${tag}</sub>`)
-    if (class_) span.classList.add(class_);
-    cell.appendChild(span);
+
+function translate(message, outerContainer, settings) {
+
+  const styleOptions = {
+    abbrstyle: [
+      settings.useSmallCaps?'font-variant: small-caps;':'',
+      settings.noAbbr?'text-decoration: none;':'',
+      ].join(''),
   }
 
-  return cell;
-}
+  function fmt(text,tag='span') {
+    const pieces = text.split(FMT_RE);
+    const cell = document.createElement(tag);
 
-function translate(message, outerContainer) {
+    for (let j = 0; j < pieces.length; j++) {
+      let text = pieces[j];
+      let class_ = '';
+      if (text.match(FMT_RE)) {
+        const c= text[text.length-1];
+        if (c==')') {
+          text = text.slice(1, -1);
+        } else {
+          class_ = 'hl'+c
+          text = text.slice(1, -2);
+        }
+      }
+      let span = document.createElement("span");
+      span.innerHTML = text
+        .replaceAll('<','&lt;')
+        .replaceAll('\n','<br>')
+        .replaceAll('\uf701', '(')
+        .replaceAll('\uf702', ')')
+        .replaceAll('&null;', '∅')
+        .replaceAll('&low;', '＿')
+        .replaceAll(ABBR_RE, (m, tag, title) => `<abbr style="${styleOptions.abbrstyle}" title="${title ?? abrev(tag)}">${settings.useSmallCaps?tag.toLowerCase():tag}</abbr>`)
+        .replaceAll(SUB_RE, (m, tag) => `<sub>${tag}</sub>`)
+      if (class_) span.classList.add(class_);
+      cell.appendChild(span);
+    }
+
+    return cell;
+  }
+
   message = message.replaceAll('((', '\uf701').replaceAll('))', '\uf702');
   let rows = message.split("\n").filter((row) => row.length > 0);
 
@@ -94,7 +104,7 @@ function translate(message, outerContainer) {
   if (lines && lines[0] && lines[0][0].trim() == "#") {
     const h2 = document.createElement("h2");
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ');
-    h2.appendChild(fmt(text));
+    h2.appendChild(fmt(text,'span',settings));
     h2.style.marginBottom = '1em';
     h2.style.marginTop = '1em';
     outerContainer.appendChild(h2);
@@ -105,7 +115,7 @@ function translate(message, outerContainer) {
   if (lines && lines[0] && (m = lines[0][0].trim().match(/^\(\d+\)/))) {
     container = document.createElement("li");
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
-    const el = fmt(text, 'p');
+    const el = fmt(text, 'p', settings);
     el.style.marginBottom = '0.8em';
     el.style.marginTop = '10px';
     container.appendChild(el);
@@ -114,7 +124,7 @@ function translate(message, outerContainer) {
 
   while (lines && lines[0] && lines[0][0].trim() == "!") {
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
-    const el = fmt(text, 'p');
+    const el = fmt(text, 'p',settings);
     el.style.marginBottom = '0.8em';
     el.style.marginTop = '10px';
     container.appendChild(el);
@@ -152,7 +162,7 @@ function translate(message, outerContainer) {
       td.style.height = '1.4em';
       if (italic[i]) td.style.fontStyle = 'italic';
 
-      td.appendChild(fmt(col.replaceAll('\2',' ')))
+      td.appendChild(fmt(col.replaceAll('\2',' '),'span',settings))
       tr.appendChild(td);
     }
     table.appendChild(tr);
@@ -163,7 +173,7 @@ function translate(message, outerContainer) {
   if (rest_) {
     const rest = document.createElement("p");
     rest.style.marginBlockStart = '0em';
-    rest.appendChild(fmt(rest_));
+    rest.appendChild(fmt(rest_,'span',settings));
     container.appendChild(rest)
   }
 
@@ -172,10 +182,10 @@ function translate(message, outerContainer) {
   return container
 }
 
-function renderHTML(value) {
+function renderHTML(value, settings) {
   const container = document.createElement('ol');
   value.split(/\n--+\n/).forEach(v => {
-    const k = translate(v, container);
+    const k = translate(v, container, settings);
     container.appendChild(k);
     container.appendChild(document.createElement("br"))
   });
@@ -186,21 +196,25 @@ function renderHTML(value) {
 const renderingOptions = {
   'html': renderHTML,
   'plain': renderPlainText,
+  'obsidian': renderObsidian,
   'discord-fancy': renderDiscordFancy,
 }
 let renderingOption = 'html';
+let globalSettings = {};
 
 
 const none = document.createTextNode("...");
-function update() {
-  if (renderingOption===null) return
+function update(settings={}) {
+  renderingOption = settings.renderingOption;
+  globalSettings = settings;
+  if (renderingOption==null) renderingOption = 'html'
 
   const value = editor.getValue()
   if (value.trim() == '') {
     transcription_output.replaceChildren(none);
     return;
   }
-  const container = renderingOptions[renderingOption](value)
+  const container = renderingOptions[renderingOption??'html'](value, settings)
   transcription_output.replaceChildren(container);
 
   if (renderingOption == 'html') {
@@ -217,4 +231,4 @@ function loadSession() {
   if (value) editor.setValue(value)
 }
 
-editor.on('change', update);
+editor.on('change', () => update(globalSettings));

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+    <meta property="og:title" content="Glosser" />
+    <meta name="description" content="" />
+    <meta property="og:description" content="" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Maple Karine Toolbox" >
+    <meta name="theme-color" content="#6d72c6">
+    <title>Glosser</title>
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="/assets/theme-toggle.js"></script>
+    <script src="gloss_abrev.js"></script>
+</head>
+<body>
+<header>
+  <nav class="top">
+    <a href="/toolbox/gloss" class="button circle transparent"><i class="icon">arrow_back</i></a>
+    <span class="max" style="font-weight: bold;">Glosser</span>
+    <button tabindex="-1" id="theme-switch" title="Change theme" aria-label="Change theme" class="transparent circle">
+      <i class='icon'>light_mode</i>
+    </button>
+  </nav>
+</header>
+<main>
+  <h2>List of Builtin Abbreviations</h2>
+<ul id="abrev-list"></ul>
+</main>
+<script>
+  const ul = document.getElementById('abrev-list');
+  const keys = Object.keys(GLOSS_ABREV);
+  keys.sort();
+  for (const k of keys) {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${k}</strong> : ${GLOSS_ABREV[k]}`
+    ul.append(li);
+  }
+</script>
+</body>
+</html>

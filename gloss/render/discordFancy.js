@@ -191,7 +191,7 @@ function translateDiscordFancy(message, outerContainer) {
 
   if (rest_) {
     const rest = document.createElement("span");
-    rest.appendChild(fmt(rest_));
+    rest.appendChild(fmtMd(rest_));
     container.appendChild(rest)
   }
 

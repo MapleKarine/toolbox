@@ -1,43 +1,21 @@
-function translatePlainText(message) {
-
-  function strip(text) {
-    return text
-      .replaceAll('\uf701', '(')
-      .replaceAll('\uf702', ')')
-      .replaceAll('&null;', 'Ø')
-      .replaceAll(/\(([^()]*)\)\d?/g, (m, tag) => `${tag}`)
-      .replaceAll(ABBR_RE, (m, tag, title) => `${tag}`)
-      .replaceAll(SUB_RE, (m, tag) => `${tag}`)
-      .replaceAll('&low;', '__')
-      .normalize("NFD")
-      .replaceAll(/[\u0300-\u036f]/g, "")
-  }
+function translateObsidian(message) {
 
   function fmtPre(text) {
     const pieces = text.split(FMT_RE);
     let cell = document.createElement('span');
 
-    for (let j = 0; j < pieces.length; j++) {
-      let text = pieces[j];
-      let class_ = '';
-      if (text.match(FMT_RE)) {
-        const c= text[text.length-1];
-        if (c==')') {
-          text = text.slice(1, -1);
-        } else {
-          text = text.slice(1, -2);
-        }
-      }
-      let span = document.createElement("span");
-      span.innerHTML = text
-        .replaceAll('\uf701', '(')
-        .replaceAll('\uf702', ')')
-        .replaceAll('&null;', 'Ø')
-        .replaceAll('&low;', '__')
-        .replaceAll(ABBR_RE, (m, tag, title) => `${tag}`)
-        .replaceAll(SUB_RE, (m, tag) => `${tag}`)
-      cell.appendChild(span);
-    }
+    cell.innerText = text
+      .replaceAll('[', `^[`)
+      .replaceAll(']', `^]`)
+      .replaceAll(/\(([^()]*)\)\d?/g, (m, tag) => `[${tag}]`)
+      .replaceAll('\uf701', '(')
+      .replaceAll('\uf702', ')')
+      .replaceAll('&null;', '∅')
+      .replaceAll('&low;', '＿')
+      .replaceAll(ABBR_RE, (m, tag, title) => `${tag}`)
+      .replaceAll(SUB_RE, (m, tag) => `${tag}`)
+      .normalize("NFD")
+      .replaceAll(/[\u0300-\u036f]/g, "")
 
     return cell;
   }
@@ -45,8 +23,8 @@ function translatePlainText(message) {
   message = message.replaceAll('((', '\uf701').replaceAll('))', '\uf702');
   let rows = message.split("\n").filter((row) => row.length > 0);
 
-  let container = document.createElement("div");
-
+  let container = document.createElement("pre");
+  
   rows = rows.map(s => s.replaceAll(ABBR_RE, (m) => m.replaceAll(' ','\2')))
   rows = rows.map(s => s.replaceAll(FMT_RE, (m) => m.replaceAll(' ','\2')))
 
@@ -56,20 +34,21 @@ function translatePlainText(message) {
 
   if (lines && lines[0] && lines[0][0].trim() == "#") {
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ');
-    container.appendChild(fmtPre('# '+text+'\n'));
+    container.appendChild(fmtPre('\\lbl '+text+'\n'));
     lines = lines.slice(1);
   }
 
   let m;
-  if (lines && lines[0] && (m = lines[0][0].trim().match(/^\(\d+\)/))) {
+  if (lines && lines[0] && (m = lines[0][0].trim().match(/^\((\d+)\)/))) {
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ');
-    container.appendChild(fmtPre(text+'\n', 'span'));
+    container.prepend(`\\num ${m[1]}\n`);
+    container.appendChild(fmtPre('\\ex '+text+'\n', 'span'));
     lines = lines.slice(1);
   }
 
   while (lines && lines[0] && lines[0][0].trim() == "!") {
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ');
-    container.appendChild(fmtPre(text+'\n', 'span'));
+    container.appendChild(fmtPre('\\ex '+text+'\n', 'span'));
     lines = lines.slice(1);
   }
 
@@ -93,19 +72,19 @@ function translatePlainText(message) {
     let maxl = 0;
     for (let i = 0; i < lmin; i++) {
       lines[i][j] = lines[i][j] ?? '\u00a0'
-      const len = strip(lines[i][j]).length
+      const len = fmtPre(lines[i][j]).length
       if (len > maxl) maxl = len;
     }
 
     for (let i = 0; i < lmin; i++) {
-      const len = strip(lines[i][j]).length
+      const len = fmtPre(lines[i][j]).length
       const dif = lines[i][j].length-len;
       lines[i][j] = lines[i][j].padEnd(maxl+dif, ' ');
     }
   }
 
   for (let i = 0; i < lmin; i++) {
-    container.append('   ');
+    container.append(`\\gl${['a','b','c'][i]??'c'} `);
 
     for (let j = 0; j < min; j++) {
       const col = lines[i][j];
@@ -118,20 +97,22 @@ function translatePlainText(message) {
 
   if (rest_) {
     const rest = document.createElement("span");
-    rest.appendChild(fmtPre(rest_));
+    rest.appendChild(fmtPre('\\ft '+rest_.replaceAll(/^['"]|['"]$/g, '')));
     container.appendChild(rest)
   }
+
+  container.prepend('```gloss\n');
+  container.append('\n```\n');
 
   return container;
 }
 
-function renderPlainText(value) {
-  const container = document.createElement('pre');
+function renderObsidian(value) {
+  const container = document.createElement('div');
   container.style.marginBottom = '1rem'
   value.split(/\n--+\n/).forEach((v,i,a) => {
-    const k = translatePlainText(v);
+    const k = translateObsidian(v);
     container.appendChild(k);
-    if (i<a.length-1) container.append('---');
   });
 
   return container

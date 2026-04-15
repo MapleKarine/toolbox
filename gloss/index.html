@@ -19,8 +19,10 @@
     <script src="/assets/codemirror/simple.js"></script>
     <script src="codemirror/highlight.js"></script>
     <script src="render/discordFancy.js"></script>
+    <script src="render/obsidian.js"></script>
     <script src="render/plainText.js"></script>
     <script src="/assets/theme-toggle.js"></script>
+    <script defer src="/assets/alpinejs.min.js"></script>
 </head>
 <body>
 <header>
@@ -32,7 +34,7 @@
     </button>
   </nav>
 </header>
-<main>
+<main x-data="{settings: {renderingOption: 'html'}, showOptions: false}" x-init="$watch('settings', value => update(value))">
 <div style="
      display: flex;
      flex-direction: column;
@@ -47,14 +49,38 @@
   They in Jakarta now
 > 'They are in Jakarta now.'</textarea>
   <div>
-    <nav class="group" id="output-options">
-      <button value="html" class='active'>HTML</button>
-      <button value="plain">Plain text</button>
-      <button value="discord-fancy">Discord</button>
+    <nav>
+      <nav class="group" id="output-options">
+        <button @click="settings.renderingOption = 'html'" :class='settings.renderingOption == "html" && "active"'>HTML</button>
+        <button @click="settings.renderingOption = 'plain'" :class='settings.renderingOption == "plain" && "active"'>Plain text</button>
+        <button @click="settings.renderingOption = 'obsidian'" :class='settings.renderingOption == "obsidian" && "active"'>Obsidian</button>
+        <button @click="settings.renderingOption = 'discord-fancy'" :class='settings.renderingOption == "discord-fancy" && "active"'>Discord</button>
+      </nav>
+      <button class="circle transparent" @click="showOptions = !showOptions"><i class="icon" x-text="showOptions ? 'close' : 'settings'"></i></button>
     </nav>
+    <div class="row">
+      <fieldset x-show="showOptions && settings.renderingOption == 'html'">
+        <legend>Settings</legend>
+        <div class="grid">
+          <label class="checkbox s1-2 m1-3"><input type="checkbox" x-model="settings.useSmallCaps"><span>Use smallcaps</span></label>
+          <label class="checkbox s1-2 m1-3"><input type="checkbox" x-model="settings.noAbbr"><span>No text decoration</span></label>
+        </div>
+      </fieldset>
+      <fieldset x-show="showOptions && settings.renderingOption == 'plain'">
+        <legend>Settings</legend>
+      </fieldset>
+      <fieldset x-show="showOptions && settings.renderingOption == 'obsidian'">
+        <legend>Settings</legend>
+      </fieldset>
+      <fieldset x-show="showOptions && settings.renderingOption == 'discord-fancy'">
+        <legend>Settings</legend>
+      </fieldset>
+    </div>
   </div>
   </div>
-  <div class="guide-container" id="transcription-result">...</div>
+  <div style="margin-block: 1.5rem;">
+    <div class="guide-container" id="transcription-result">...</div>
+  </div>
 
   <div id="other-options" style="margin-bottom: 5px;">
     <button onclick="copy(this)" id="share-button">Copy</button>
@@ -97,7 +123,7 @@
   <span class='hl9'>Color9</span>
 </p>
 <p>To write regular parenthesis you need double parenthesis <code>((Example))</code>.</p>
-<p>Use capital letters between curly brackets to make a glossing abbreviation, you can hover your mouse over them to see their meaning. There is a huge list of builtin abbreviations, but you can make your own like the following: <code>{DEL:Delative}</code>.</p>
+<p>Use capital letters between curly brackets to make a glossing abbreviation, you can hover your mouse over them to see their meaning. There is a big <a target="_blank" href="/toolbox/gloss/list_abrev.html">list of builtin abbreviations</a>, but you can make your own like the following: <code>{DEL:Delative}</code>.</p>
 <p>The special character ∅ can be shown with <code>&null;</code></p>
 <h3>Cheatsheet</h3>
 <pre style="text-wrap-mode: wrap;">
@@ -130,16 +156,16 @@ if (window.location.hash.length > 1) {
       update();
     })
 } else {
-  const buttons = document.querySelectorAll("#output-options button");
+  // const buttons = document.querySelectorAll("#output-options button");
 
-  buttons.forEach(button => {
-      button.addEventListener("click", function() {
-          buttons.forEach(btn => btn.classList.remove("active"));
-          this.classList.add("active");
-          renderingOption = this.getAttribute("value");
-          update();
-      });
-  });
+  // buttons.forEach(button => {
+  //     button.addEventListener("click", function() {
+  //         buttons.forEach(btn => btn.classList.remove("active"));
+  //         this.classList.add("active");
+  //         renderingOption = this.getAttribute("value");
+  //         update();
+  //     });
+  // });
 
 
   loadSession();
