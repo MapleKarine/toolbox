@@ -16,13 +16,38 @@ const NASAL_MOA_ORDER = [
 	'sonorant',
 ];
 
-function toTitleCase(str) {
-	return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())
+function toTitleCase(str, short=false) {
+	let s = str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())
 		.replace('Labiodental','Labio-dental')
 		.replace('Tap-Or-Trill','Tap or Trill')
 		.replace('Labialized','Lab.')
 		.replace('Palatalized','Pal.')
 		.replace('Postalveolar','Post-alveolar');
+	if (short) {
+		s = s
+			.replace('Fricative','Fric.')
+			.replace('Affricate','Affr.')
+			.replace('Approximant','Apprx.')
+			.replace('Sonorant','Sono.')
+			.replace('Ejective','Ejec.')
+			.replace('Implosive','Impl.')
+			.replace('Aspirated','Asp.')
+			.replace('Lateral','Lat.')
+			.replace('Bilabial','Lab.')
+			.replace('Labio-dental','Lab-dnt.')
+			.replace('Labial','Lab.')
+			.replace('Coronal','Cor.')
+			.replace('Dental','Dnt.')
+			.replace('Alveolar','Alv.')
+			.replace('Sibilant','Sib.')
+			.replace('Post-alveolar','Post-Alv.')
+			.replace('Retroflex','Rtfx.')
+			.replace('Velar','Vel.')
+			.replace('Dorsal','Dor.')
+			.replace('Palatal','Pal.')
+			.replace('Glottal','Glt.')
+	}
+	return s;
 }
 
 function hasPOAOverlap(consonants, poa, cb) {
@@ -33,7 +58,8 @@ function hasPOAOverlap(consonants, poa, cb) {
 	const x = p2.map(x => x.moa+x.voice);
 	const noOverlap = x.length == [...new Set(x)].length;
 	if (noOverlap) {
-		cb(p)
+		if (typeof cb == 'function') cb(p);
+		else p.forEach(x => x.poa = cb)
 	}
 	return noOverlap;
 }
@@ -58,54 +84,70 @@ function hasMOAOverlap(consonants, moa, cb, force=false) {
 const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	if (consonants.length == 0) return '';
 
-	if (settings.sibilant) consonants.forEach(x => {
-		if (x.label.includes('s') || x.label.includes('z')) {
-			x.poa = 'sibilant'
-		}
+	const mergeBasic = settings.merge>0;
+	const mergeNormal = settings.merge>1;
+	const mergeAggressive = settings.merge>2;
+
+	if (mergeAggressive) {
+		settings.singleCell = true;
+	}
+
+	if (settings.sibilant || (mergeAggressive && consonants.filter(x => x.plabel?.includes('s')).length >= 2)) consonants.forEach(x => {
+		const y = x.plabel??'';
+		if (y.includes('s') || y.includes('z')) { x.poa = 'sibilant' }
 	})
 
-	hasPOAOverlap(consonants, ['bilabial','labiodental'], (x) => {
-		x.forEach(y => y.poa = 'labial')
-	});
+	if (mergeBasic) hasPOAOverlap(consonants, ['bilabial','labiodental'], 'labial');
+	if (mergeNormal) {
+		hasPOAOverlap(consonants, ['palatal','alveolo-palatal'], 'palatal');
+		hasPOAOverlap(consonants, ['dental','alveolar'], 'coronal');
+		hasPOAOverlap(consonants, ['palatal','postalveolar'], 'postalveolar');
+	}
 
-	hasPOAOverlap(consonants, ['palatal','alveolo-palatal'], (x) => {
-		x.forEach(y => y.poa = 'palatal')
-	});
+	if (mergeBasic) {
+		hasMOAOverlap(consonants, ['tap','trill'], (x) => { x.forEach(y => y.moa = 'tap-or-trill') })
+		hasMOAOverlap(consonants, ['approximant','lateral approximant'], (x) => { x.forEach(y => y.moa = 'approximant') })
 
-	if (!hasPOAOverlap(consonants, ['palatal','velar','uvular'], (x) => {
-		x.forEach(y => y.poa = 'dorsal')
-	})) {if(!hasPOAOverlap(consonants, ['palatal','velar'], (x) => {
-		x.forEach(y => y.poa = 'dorsal')
-	})) {
-		hasPOAOverlap(consonants, ['palatal','postalveolar'], (x) => {
-			x.forEach(y => y.poa = 'palatal')
-		})
-	}}
-
-	hasPOAOverlap(consonants, ['dental','alveolar'], (x) => {
-		x.forEach(y => y.poa = 'coronal')
-	});
-
-	hasMOAOverlap(consonants, ['tap','trill'], (x) => { x.forEach(y => y.moa = 'tap-or-trill') })
-
-	if (settings.affricate && hasMOAOverlap(consonants, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') })) {
+		hasMOAOverlap(consonants, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') })
 		hasMOAOverlap(consonants, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') })
 		hasMOAOverlap(consonants, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') })
 		hasMOAOverlap(consonants, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') })
 	}
 
-	hasMOAOverlap(consonants, ['approximant','lateral approximant'], (x) => { x.forEach(y => y.moa = 'approximant') })
+	if (mergeNormal) {
+		hasMOAOverlap(consonants, ['approximant','tap-or-trill'], (x) => { x.forEach(y => y.moa = 'sonorant') })
+		hasMOAOverlap(consonants, ['fricative','lateral fricative'], (x) => { x.forEach(y => y.moa = 'fricative') })
 
-	hasMOAOverlap(consonants, ['approximant','tap-or-trill','tap','trill'], (x) => { x.forEach(y => y.moa = 'approximant') })
+		if (!hasPOAOverlap(consonants, ['palatal','velar','uvular'], (x) => {
+			x.forEach(y => y.poa = 'dorsal')
+		})){ hasPOAOverlap(consonants, ['palatal','velar'], (x) => {
+			x.forEach(y => y.poa = 'dorsal')
+		})}
+	}
 
-	hasMOAOverlap(consonants, ['fricative','lateral fricative'], (x) => { x.forEach(y => y.moa = 'fricative') })
+	if (mergeAggressive) {
+		const glottalSingle = consonants.filter(x=>x.poa=='glottal');
+		if (glottalSingle.length==1 && glottalSingle[0].plabel=='h' && !consonants.find(x=>x.plabel=='x')) {
+			hasPOAOverlap(consonants, ['velar'], 'dorsal');
+			glottalSingle[0].poa = 'dorsal';
+		}
 
-	if (settings.sonorant) {
-		hasMOAOverlap(consonants, ['approximant','tap-or-trill','tap','trill','lateral'], (x) => { x.forEach(y => y.moa = 'sonorant') }, true)
+		hasMOAOverlap(consonants, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') }, true)
+		hasMOAOverlap(consonants, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') }, true)
+		hasMOAOverlap(consonants, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') }, true)
+		hasMOAOverlap(consonants, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') }, true)
+		
+		hasMOAOverlap(consonants, ['ejective','stop'], (x) => { x.forEach(y => y.moa = 'stop') })
+
+		consonants
+			.filter(x => ['approximant','tap-or-trill','tap','trill','lateral approximant'].includes(x.moa))
+			.forEach(y => y.moa = 'sonorant')
+
+		hasMOAOverlap(consonants, ['sonorant','fricative'], (x) => { x.forEach(y => y.moa = 'sonorant') })
 	}
 
 	const container = document.createElement('div');
-	container.setAttribute('class', 'consonant-table-container');
+	container.setAttribute('class', 'consonant-table-container'+(settings.singleCell?'':' doubleCell'));
 
 	const table = document.createElement("table");
 	table.classList.add('border')
@@ -133,11 +175,6 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 		DEFAULT_MOA.splice(i+1, 0, k)
 	}
 
-	
-
-
-
-
 	const trh = document.createElement('tr');
 	table.appendChild(trh);
 
@@ -145,7 +182,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	for (const poa of DEFAULT_POA) {
 		const th = document.createElement('th');
 		th.setAttribute('colspan', 2);
-		th.innerText = toTitleCase(poa);
+		th.innerText = toTitleCase(poa, settings.shortNames);
 		trh.appendChild(th);
 	}
 
@@ -160,7 +197,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 		if (moacons.length == 0) continue;
 
 		const th = document.createElement('th');
-		th.innerText = toTitleCase(moa);
+		th.innerText = toTitleCase(moa, settings.shortNames);
 		th.style.whiteSpace = 'nowrap';
 		tr.appendChild(th);
 		for (const poa of DEFAULT_POA) {
@@ -171,18 +208,21 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 			const voiced = poacons.filter(x => x.voice >= 0).map(x => x.label)
 			const voiceless = poacons.filter(x => x.voice < 0).map(x => x.label)
 
-
 			const td1 = document.createElement('td');
 			const td2 = document.createElement('td');
 
-			td1.innerText = voiceless.join('\n')
-			td2.innerText = voiced.join('\n')
-
-			// td1.innerText = ['voiceless',poa,moa].join(' ')
-			// td2.innerText = ['voiced',poa,moa].join(' ')
-			
-			tr.appendChild(td1);
-			tr.appendChild(td2);
+			if (settings.singleCell) {
+				td1.innerText = [...voiceless,...voiced].join(' ')
+				td1.colSpan = 2;
+				
+				tr.appendChild(td1);
+			} else {
+				td1.innerText = voiceless.join('\n')
+				td2.innerText = voiced.join('\n')
+				
+				tr.appendChild(td1);
+				tr.appendChild(td2);
+			}
 		}
 	}
 
@@ -193,24 +233,6 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 		other.innerText = `Other sounds: ${sounds.join(' ')}`
 		container.appendChild(other);
 	}}
-
-	// for (const vowel of vowels) {
-	// 	const [x, y] = positionFunc(vowel.x, vowel.y);
-
-	// 	if (vowel.dot!='middle') {
-	// 		const dotEl = document.createElement('span');
-	// 		dotEl.setAttribute('class', 'vowel-chart-text-dot');
-	// 		dotEl.setAttribute('style', `left: ${(x*settings.size+32)-3}px; top: ${(y*settings.size+16)-3}px;`);
-	// 		textFloat.appendChild(dotEl);
-	// 	}
-	// 	const text = document.createElement('span');
-	// 	text.setAttribute('class', 'vowel-chart-text-float '+vowel.dot);
-	// 	text.setAttribute('style', `left: ${(x*settings.size+32)+(vowel.dot=='left'?-4:vowel.dot=='right'?4:0)}px; top: ${(y*settings.size+16)}px;`);
-	// 	text.innerText = vowel.label;
-	// 	textFloat.appendChild(text);
-	// }
-
-	// drawSVG(svgEl, settings.layout.toLowerCase(), settings.size);
 
 	return container.outerHTML;
 };

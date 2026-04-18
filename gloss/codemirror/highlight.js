@@ -4,6 +4,7 @@ const tokens = STYLES.map(p => ({regex: new RegExp(`\\([^()]+\\)${p}`), token: "
 
 CodeMirror.defineSimpleMode("simplemode", {
 	start: [
+		{regex: /;.*/, token: "comment", sol: true },
 		...tokens,
 		// {regex: /(\([^()]+\)\d?)/, token: "hr" },
 		// {regex: /\\\\/, token: "hr" },
@@ -18,7 +19,7 @@ CodeMirror.defineSimpleMode("simplemode", {
 
 	meta: {
 		// dontIndentStates: ["comment"],
-		// lineComment: "#"
+		lineComment: ";"
 	}
 });
   

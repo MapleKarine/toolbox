@@ -209,12 +209,13 @@ function update(settings={}) {
   globalSettings = settings;
   if (renderingOption==null) renderingOption = 'html'
 
-  const value = editor.getValue()
+  const value = editor.getValue();
   if (value.trim() == '') {
     transcription_output.replaceChildren(none);
     return;
   }
-  const container = renderingOptions[renderingOption??'html'](value, settings)
+
+  const container = renderingOptions[renderingOption??'html'](value.split("\n").filter(x => x[0]!=';').join('\n'), settings)
   transcription_output.replaceChildren(container);
 
   if (renderingOption == 'html') {

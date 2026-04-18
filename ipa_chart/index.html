@@ -47,7 +47,9 @@
     <textarea id="gloss-input" style="
         width: 100%;
         resize: vertical;
-    " rows=10 spellcheck="false">p t k s h m n a e i o u</textarea>
+    " rows=10 spellcheck="false"># Finnish
+m n ŋ p t̪ d k s h ʋ l r j
+i y u e ø o æ ɑ</textarea>
     </div>
 
 
@@ -55,27 +57,36 @@
         <fieldset class="s12 m6">
             <legend>Consonant settings</legend>
             <nav class="grid">
+                <div class="field suffix s12">
+                  <select u-model="merge">
+                    <option value="0">Disable</option>
+                    <option value="1">Basic</option>
+                    <option value="2" selected>Normal</option>
+                    <option value="3">Aggressive (experimental)</option>
+                  </select>
+                  <label>Auto merge</label>
+                  <i class="icon">arrow_drop_down</i>
+                </div>
+                <label class="checkbox s12 m1-2"><input u-model="shortNames" type="checkbox"><span>Short names</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="nasalTop" type="checkbox" checked><span>Nasals on top</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="sibilant" type="checkbox"><span>Sibilant column</span></label>
-                <label class="checkbox s12 m1-2"><input u-model="affricate" type="checkbox" checked><span>Stop+Affricate</span></label>
-                <label class="checkbox s12 m1-2"><input u-model="sonorant" type="checkbox"><span>Merge all sonorants</span></label>
-                <label class="checkbox s12 m1-2"><input u-model="nasalTop" type="checkbox"><span>Nasals on top</span></label>
-                <label class="checkbox s12"><input u-model="labialized" type="checkbox" checked><span>Labialized/Palatalized columns</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="labialized" type="checkbox" checked><span>Lab./Pal. columns</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="singleCell" type="checkbox"><span>Single cell</span></label>
             </nav>
         </fieldset>
         <fieldset class="s12 m6 vertical">
             <legend>Vowel settings</legend>
             <nav class="vertical">
-                <!-- <nav class="vertical"> -->
-                    <nav class="grid">
-                        <label class="radio s1-2"><input u-model="layout" value="trapezoid" type="radio" name="vowel-layout" checked><span>Trapezoid</span></label>
-                        <label class="radio s1-2"><input u-model="layout" value="triangle" type="radio" name="vowel-layout"><span>Triangle</span></label>
-                    </nav>
-                    <nav class="grid">
-                        <label class="radio s1-2"><input u-model="layout" value="square" type="radio" name="vowel-layout"><span>Square</span></label>
-                        <label class="radio s1-2"><input u-model="layout" value="formant" type="radio" name="vowel-layout"><span>Formant</span></label>
-                    </nav>
-                <!-- </nav> -->
+                <nav class="grid">
+                    <label class="radio s1-2"><input u-model="layout" value="trapezoid" type="radio" name="vowel-layout" checked><span>Trapezoid</span></label>
+                    <label class="radio s1-2"><input u-model="layout" value="triangle" type="radio" name="vowel-layout"><span>Triangle</span></label>
+                </nav>
+                <nav class="grid">
+                    <label class="radio s1-2"><input u-model="layout" value="square" type="radio" name="vowel-layout"><span>Square</span></label>
+                    <label class="radio s1-2"><input u-model="layout" value="formant" type="radio" name="vowel-layout"><span>Formant</span></label>
+                </nav>
                 <label class="checkbox"><input u-model="centralLowVowel" type="checkbox" name="vowel-layout" checked><span>/a/ is central</span></label>
+                <label class="checkbox"><input u-model="trueMid" type="checkbox" name="vowel-layout" checked><span>/e o/ as true mid</span></label>
             </nav>
         </fieldset>
     </div>
@@ -96,6 +107,7 @@ a i u</pre>
     <p>The simplest way to use the tool is to paste vowels and consonants in the text box and let it be automatically organized. A finer control of the sounds can be made using the <code class="code">add</code> command.</p>
     <p>The list of phonemes must be the very last thing in the input.</p>
     <p>The <code class="code">add</code> command can be followed by a series of keywords <code class="code">voiced bilabial stop</code> or an IPA segment written in square brackets <code class="code">[d]</code> that signifies its position, and a display text, written in quotes <code class="code">"ᵐb"</code>.</p>
+    <p>A title can be included with a line starting with hashtag like <code class="code"># Title</code>.</p>
     <p>A line starting with <code class="code">;</code> is ignored.</p>
     <h3>Keywords</h3>
     <p>This is the list of consonant keywords:</p>
@@ -128,24 +140,30 @@ low                 open
     <h2>Settings</h2>
     <p>Settings can be changed using the visual interface or with the <code class="code">config &lt;config-name&gt; value</code> command.</p>
     <p>The value can be <code class="code">true</code>,<code class="code">false</code> or a double quoted string <code class="code">"option"</code>.</p>
-    <pre style="overflow-x: auto;">
-; add a row for alveolar sibilants [s ts dz ...]
-config sibilant true
+    <pre style="overflow-x: auto;" class="cm-s-maple-dark">
+<span class="cm-comment">; add a row for alveolar sibilants [s ts dz ...]</span>
+<span class="cm-def">config</span> sibilant <span class="cm-number">true</span>
 
-; merge stops and affricates in the same row
-config affricate true
+<span class="cm-comment">; move nasals to the top, taps and trills to the bottom</span>
+<span class="cm-def">config</span> nasalTop <span class="cm-number">true</span>
 
-; merge trills, taps, approximants and laterals in the same row
-config sonorant true
+<span class="cm-comment">; arrange MOA the same order as the oficial IPA chart</span>
+<span class="cm-def">config</span> nasalTop <span class="cm-number">false</span>
 
-; move nasals to the top, taps and trills to the bottom
-config nasalTop true
+<span class="cm-comment">; add automatic columns for labialized and palatalized sounds with ʷʲ</span>
+<span class="cm-def">config</span> labialized <span class="cm-number">true</span>
 
-; arrange MOA the same order as the oficial IPA chart
-config nasalTop false
+<span class="cm-comment">; uses a single table cell instead of two for voiceless voiced pairs</span>
+<span class="cm-def">config</span> singleCell <span class="cm-number">true</span>
 
-; add automatic columns for labialized and palatalized sounds with ʷʲ
-config labialized true
+<span class="cm-comment">; abbreviates row/col names for compactness (unstable)</span>
+<span class="cm-def">config</span> shortNames <span class="cm-number">true</span>
+
+<span class="cm-comment">; make [a] a central low vowel and [æ] front low</span>
+<span class="cm-def">config</span> centralLowVowel <span class="cm-number">true</span>
+
+<span class="cm-comment">; make [e ø o] true mid when there isn't [ɛ œ ɔ]</span>
+<span class="cm-def">config</span> trueMid <span class="cm-number">true</span>
 </pre>
 </div>
 </article>

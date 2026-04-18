@@ -247,11 +247,15 @@ const MOA_KEYWORDS = [
 	['plosive','stop',-1],
 	['affricate','affricate',-1],
 	['nasal','nasal',0],
+	['vibrant','trill',0],
 	['trill','trill',0],
 	['tap','tap',0],
 	['flap','tap',0],
 	['fricative','fricative',-1],
+	['spirant','fricative',-1],
 	['approximant','approximant',0],
+	['sonorant','approximant',0],
+	['glide','approximant',0],
 	['ejective','ejective',-1],
 ]
 
@@ -263,6 +267,7 @@ const POA_KEYWORDS = [
 	['postalveolar', 'postalveolar'],
 	['alveolar', 'alveolar'],
 	['retroflex', 'retroflex'],
+	['alveopalatal', 'alveolo-palatal'],
 	['alveolopalatal', 'alveolo-palatal'],
 	['alveolo palatal', 'alveolo-palatal'],
 	['palatal', 'palatal'],
@@ -270,6 +275,8 @@ const POA_KEYWORDS = [
 	['uvular', 'uvular'],
 	['pharyngeal', 'pharyngeal'],
 	['glottal', 'glottal'],
+	['dorsal', 'dorsal'],
+	['coronal', 'coronal'],
 ]
 
 const VOICE_KEYWORDS = [
@@ -282,13 +289,17 @@ const HEIGHT_KEYWORDS = [
 	['near high', 0.5],
 	['high mid', 1],
 	['low mid', 2],
+	['mid high', 1],
+	['mid low', 2],
 	['near low', 2.5],
+	['near close', 0.5],
+	['mid close', 1],
+	['mid open', 2],
+	['half close', 1],
+	['half open', 2],
+	['near open', 2.5],
 	['high', 0],
 	['low', 3],
-	['near close', 0.5],
-	['close mid', 1],
-	['open mid', 2],
-	['near open', 2.5],
 	['close', 0],
 	['open', 3],
 	['mid', 1.5],
@@ -305,7 +316,7 @@ const BACKNESS_KEYWORDS = [
 function keywords(position, settings) {
 	position = position.toLowerCase().replace(/-/g, ' ');
 
-	let x = null, y = 1.5;
+	let x = 1, y = null;
 	let moa = 'undefined', poa = 'undefined', voice = 0;
 
 	for (const kw of HEIGHT_KEYWORDS) {
@@ -338,12 +349,15 @@ function keywords(position, settings) {
 	if (!moa.includes('ejective') && position.includes("ejective")) moa = 'ejective '+moa;
 	if (position.includes("aspirated")) moa = 'aspirated '+moa;
 	if (position.includes("prenasalized")) moa = 'prenasalized '+moa;
+	if (position.includes("prenasalised")) moa = 'prenasalized '+moa;
 
 	if (position.includes("labialized")) poa = 'labialized '+poa;
 	if (position.includes("palatalized")) poa = 'palatalized '+poa;
+	if (position.includes("labialised")) poa = 'labialized '+poa;
+	if (position.includes("palatalised")) poa = 'palatalized '+poa;
 
 	if (moa !== 'undefined' && poa !== 'undefined') return {x, y, voice, moa, poa, vowel: false};
-	if (x !== null) return {x, y, voice, moa, poa, vowel: true};
+	if (y !== null) return {x, y, voice, moa, poa, vowel: true};
 
 	return null;
 }
@@ -380,6 +394,7 @@ function getPosition(position, settings, error) {
 			.replace('ʲ','')
 			.replace('ʰ','')
 			.replace('ʱ','')
+			.replace('ː','')
 			.replace('͡','')
 			.replace('̼','̪')
 			.replace('̊','')
@@ -423,26 +438,37 @@ function getPosition(position, settings, error) {
 
 
 function parse(source, settings=DEFAULT_SETTINGS, error) {
-	let end = 0;
 	const vowels = [];
 
 	source = source.replaceAll('ɡ','g');
 
-	const lines = source.split('\n');
+	const lines = source.split('\n').filter(line => {
+		// filter empty lines and comments
+		if (line.trim() == '') return false;
+		if (line[0] == ';') return false;
+
+		return true;
+	});
+
+	const nonCmdLines = [];
+
+	const positionMap = {};
+
 	for (const line of lines) {
-		if (line.trim() == '') { end++; continue; }
-		if (line[0] == ';') { end++; continue; }
+		const titleMatch = line.match(/^# (.*)/m);
+		if (titleMatch) {
+			settings.title = titleMatch[1];
+			continue;
+		}
 
 		const layoutMatch = line.match(/^layout (\w+)/m);
 		if (layoutMatch) {
-			end++;
 			settings.layout = layoutMatch[1]?.toLowerCase()??'trapezoid';
 			continue;
 		}
 
 		const configMatch = line.match(/^config ([\w-]+) (.*)/);
 		if (line.startsWith('config') && configMatch && configMatch[1]) {
-			end++;
 			try {
 				settings[configMatch[1]] = JSON.parse(configMatch[2]);
 			} catch {
@@ -452,9 +478,10 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 		}
 
 		const match = line.match(/^add\s+(?:(?:dot\s+)?(left|right))?\s*(\[[^\]]+\]|\([^)]+\)|[^"]+)\s*(?:"([^"]*)")?/m);
-		if (!match) { break; }
-
-		end++;
+		if (!match) {
+			nonCmdLines.push(line);
+			continue;
+		}
 
 		const dot = match[1]??'middle';
 		const position = getPosition(match[2]??'', settings, error);
@@ -474,12 +501,22 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 			label = position.label;
 		}
 
-		vowels.push({label, vowel: position.vowel, x: position.x, y: position.y, dot, voice: position.voice, moa: position.moa, poa: position.poa});
+		if (position.cardinal && dot=='middle') {
+			const cardinal = positionMap[position.cardinal];
+			if (cardinal) {
+				cardinal.text.push(label);
+			} else {
+				positionMap[position.cardinal] = {x: position.x, y: position.y, text:[label]};
+			}
+			continue;
+		}
+
+		vowels.push({label, plabel: position.label, vowel: position.vowel, x: position.x, y: position.y, dot, voice: position.voice, moa: position.moa, poa: position.poa});
 	}
 
-	const positionMap = {};
+	
 
-	lines.slice(end).filter(x=>x[0]!=';').join(' ').split(/[\s,]+/g)
+	nonCmdLines.join(' ').split(/[\s,]+/g)
 		.forEach(v => {
 			if (!v.trim()) return;
 			const p = getPosition(`[${v}]`, settings, error);
@@ -488,7 +525,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 				return;
 			}
 			if (!p.cardinal) {
-				vowels.push({label: v, vowel: p.vowel, x: p.x, y: p.y, dot: 'middle', voice: p.voice, moa: p.moa, poa: p.poa});
+				vowels.push({label: v, plabel: p.label, vowel: p.vowel, x: p.x, y: p.y, dot: 'middle', voice: p.voice, moa: p.moa, poa: p.poa});
 				return;
 			}
 			const cardinal = positionMap[p.cardinal];

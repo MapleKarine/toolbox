@@ -75,6 +75,11 @@ const renderVowels = (vowels, settings=DEFAULT_SETTINGS) => {
 	settings.size = Number(settings.size) || DEFAULT_SETTINGS.size;
 	settings.layout = settings.layout.toLowerCase();
 
+	const trueMid = vowels.filter(v => v.x != 1&&v.y>0&&v.y<2.5);
+	if (settings.trueMid && trueMid.every(v=>v.y==1)) {
+		trueMid.forEach(v => v.y=1.5)
+	}
+
 	const positionFunc = layoutFunction[settings.layout] ?? trapezoidChartCoord;
 
 	const container = document.createElement('div');

@@ -25,14 +25,10 @@ function renderHTML(value) {
   const output = document.createElement('div');
   output.classList.add('horizontal')
   output.classList.add('wrap')
+  output.classList.add('align-center')
 
   const settings = {
-    // centralLowVowel: false,
-    // layout: 'trapezoid',
     size: 40,
-    // labialized: true,
-    // nasalTop: true,
-    // sibilant: false,
     ...udata,
   };
   const segments = parse(value,settings,(msg) => {
@@ -40,6 +36,12 @@ function renderHTML(value) {
     x.innerHTML = `<span>${msg}</span>`
     container.appendChild(x)
   })
+
+  if (settings.title) {
+    const title = document.createElement('h3');
+    title.innerText = settings.title;
+    container.appendChild(title);
+  }
 
   output.innerHTML = 
     renderConsonants(segments.filter(x=>!x.vowel),settings)+
@@ -49,24 +51,14 @@ function renderHTML(value) {
   return container
 }
 
-const renderingOptions = {
-  'html': renderHTML,
-  // 'markdown': renderMarkdown,
-  // 'discord-fancy': renderDiscordFancy,
-}
-let renderingOption = 'html';
-
-
 const none = document.createTextNode("...");
 function update() {
-  if (renderingOption===null) return
-
-  const value = editor.getValue()
+  const value = editor.getValue();
   if (value.trim() == '') {
     transcription_output.replaceChildren(none);
     return;
   }
-  const container = renderingOptions['html'](value)
+  const container = renderHTML(value);
   transcription_output.replaceChildren(container);
 
   sessionStorage.setItem("ipa-chart-session-input", value);

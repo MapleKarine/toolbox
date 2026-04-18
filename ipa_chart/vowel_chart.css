@@ -43,7 +43,7 @@
 	width: 6px;
 	height: 6px;
 	border-radius: 50%;
-	background-color: var(--bg-color);
+	background-color: var(--fg-color);
 }
 
 
@@ -68,14 +68,22 @@
 	font-size: smaller;
 }
 
-.consonant-table-container tr td:nth-child(even) {
+.consonant-table-container.doubleCell tr td:nth-child(even) {
 	border-right: none;
 }
 
-.consonant-table-container tr td:nth-child(2n+3) {
+.consonant-table-container.doubleCell tr td:nth-child(2n+3) {
 	border-left: none;
 }
 
 .consonant-table-container th {
 	font-weight: bold;
+}
+
+.consonant-table-container td {
+	text-wrap: nowrap;
+}
+
+.consonant-table-container.doubleCell td {
+	text-wrap: wrap;
 }
