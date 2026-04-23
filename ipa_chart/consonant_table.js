@@ -15,16 +15,28 @@ const NASAL_MOA_ORDER = [
 	'approximant','lateral approximant',
 	'sonorant',
 ];
+const DEFAULT_POA_ORDER = [
+	'bilabial','labiodental','labial',
+	'dental', 'dental sibilant','alveolar','coronal','sibilant','lateral',
+	'postalveolar',
+	'retroflex',
+	'alveolo-palatal',
+	'dorsal','palatal','velar','uvular',
+	'pharyngeal','glottal',
+];
 
 function toTitleCase(str, short=false) {
 	let s = str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase())
-		.replace('Labiodental','Labio-dental')
+		.replace('Labiodental','Labio\u00ADdental')
+		.replace('Lateral Approximant','Lateral')
 		.replace('Tap-Or-Trill','Tap or Trill')
 		.replace('Labialized','Lab.')
 		.replace('Palatalized','Pal.')
-		.replace('Postalveolar','Post-alveolar');
+		.replace('Postalveolar','Post\u00ADalveolar')
+		.replace('Pharyngeal','Pharyn\u00ADgeal');
 	if (short) {
 		s = s
+			.replace('ized','')
 			.replace('Fricative','Fric.')
 			.replace('Affricate','Affr.')
 			.replace('Approximant','Apprx.')
@@ -34,37 +46,59 @@ function toTitleCase(str, short=false) {
 			.replace('Aspirated','Asp.')
 			.replace('Lateral','Lat.')
 			.replace('Bilabial','Lab.')
-			.replace('Labio-dental','Lab-dnt.')
+			.replace('Labio\u00ADdental','Lab\u00ADdnt.')
 			.replace('Labial','Lab.')
 			.replace('Coronal','Cor.')
 			.replace('Dental','Dnt.')
 			.replace('Alveolar','Alv.')
+			.replace('Alveolo','Alv.')
 			.replace('Sibilant','Sib.')
-			.replace('Post-alveolar','Post-Alv.')
+			.replace('Post\u00ADalveolar','Post\u00ADAlv.')
 			.replace('Retroflex','Rtfx.')
 			.replace('Velar','Vel.')
 			.replace('Dorsal','Dor.')
+			.replace('Uvular','Uvu.')
+			.replace('Pharyn\u00ADgeal','Pha.')
 			.replace('Palatal','Pal.')
+			.replace('Tap or Trill','Vibr.')
 			.replace('Glottal','Glt.')
 	}
 	return s;
 }
 
-function hasPOAOverlap(consonants, poa, cb) {
+
+function replacePOAModifiers(x, z) {
+	const mods = [];
+	POA_MODIFIERS.forEach(y => {
+		if (x.includes(y)) {
+			x = x.replace(y, '').trim()
+			mods.push(y);
+		}
+	})
+	return mods.join(' ')+z;
+}
+
+function hasPOAOverlap({consonants, locked}, poa, cb) {
+	if (poa.some(x => locked.includes(x))) return false;
+
 	const present = poa.filter(x => consonants.find(y => y.poa == x))
 	if (present.length == 1 || poa.length == 2 && present.length != 2) return false;
 	const p = consonants.filter(x => poa.includes(x.poa))
 	const p2 = Array.from(new Set(p.map(x => JSON.stringify({...x,label:undefined}))), x=>JSON.parse(x))
-	const x = p2.map(x => x.moa+x.voice);
+	const x = p2.map(x => x.poamods?.join('')+x.moa+x.voice);
 	const noOverlap = x.length == [...new Set(x)].length;
 	if (noOverlap) {
 		if (typeof cb == 'function') cb(p);
-		else p.forEach(x => x.poa = cb)
+		else p.forEach(x => {
+			x.poa = cb
+		})
 	}
 	return noOverlap;
 }
 
-function hasMOAOverlap(consonants, moa, cb, force=false) {
+function hasMOAOverlap({consonants, locked}, moa, cb, force=false) {
+	if (moa.some(x => locked.includes(x))) return false;
+
 	const present = moa.filter(x => consonants.find(y => y.moa == x))
 	if (present.length == 1 || moa.length == 2 && present.length != 2) return false;
 	const p = consonants.filter(x => moa.includes(x.moa));
@@ -72,8 +106,8 @@ function hasMOAOverlap(consonants, moa, cb, force=false) {
 		cb(p);
 		return true;
 	}
-	const p2 = Array.from(new Set(p.map(x => JSON.stringify({...x,label:undefined}))), x=>JSON.parse(x))
-	const x = p2.map(x => x.poa+x.voice);
+	const p2 = Array.from(new Set(p.map(x => JSON.stringify({...x,label:undefined,plabel:undefined}))), x=>JSON.parse(x))
+	const x = p2.map(x => x.poa+x.poamods?.join(' ')+x.voice);
 	const noOverlap = x.length == [...new Set(x)].length;
 	if (noOverlap) {
 		cb(p)
@@ -84,6 +118,9 @@ function hasMOAOverlap(consonants, moa, cb, force=false) {
 const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	if (consonants.length == 0) return '';
 
+	let DEFAULT_POA = DEFAULT_POA_ORDER;
+	let DEFAULT_MOA = settings.nasalTop ? NASAL_MOA_ORDER : IPA_MOA_ORDER;
+
 	const mergeBasic = settings.merge>0;
 	const mergeNormal = settings.merge>1;
 	const mergeAggressive = settings.merge>2;
@@ -92,35 +129,72 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 		settings.singleCell = true;
 	}
 
+	for (const [names, target] of settings.forceMerge) {
+		const ispoa = names.map(x => DEFAULT_POA.includes(x)).reduce((a,b)=>a+b);
+		const ismoa = names.map(x => DEFAULT_MOA.includes(x)).reduce((a,b)=>a+b);
+		if (ismoa > ispoa) {
+			consonants.forEach(x => {
+				if (names.includes(x.moa)) {
+					x.moa = target;
+				}
+			})
+			if (!DEFAULT_MOA.includes(target)) {
+				const where = DEFAULT_MOA.indexOf(names[0]);
+				DEFAULT_MOA.splice(where+1, 0, target)
+			}
+		} else {
+			consonants.forEach(x => {
+				if (names.includes(x.poa)) {
+					x.poa = target;
+				}
+			})
+			if (!DEFAULT_POA.includes(target)) {
+				const where = DEFAULT_POA.indexOf(names[0]);
+				DEFAULT_POA.splice(where+1, 0, target)
+			}
+		}
+	}
+
 	if (settings.sibilant || (mergeAggressive && consonants.filter(x => x.plabel?.includes('s')).length >= 2)) consonants.forEach(x => {
 		const y = x.plabel??'';
-		if (y.includes('s') || y.includes('z')) { x.poa = 'sibilant' }
+		if (y.includes('s') || y.includes('z')) { x.poa = x.poa.replace('alveolar', 'sibilant').replace('dental', 'dental sibilant') }
 	})
 
-	if (mergeBasic) hasPOAOverlap(consonants, ['bilabial','labiodental'], 'labial');
+	if (settings.lateral || (mergeAggressive && consonants.filter(x => x.plabel?.includes('ɬ')).length >= 2)) consonants.forEach(x => {
+		if (!x.moa.includes('lateral')) return;
+		x.moa = x.moa.replace('lateral', '').trim()
+		x.poa = x.poa.replace(/\balveolar/, 'lateral')
+	})
+
+	// lateral column
+
+	if (mergeBasic) hasPOAOverlap({consonants, locked: settings.locked}, ['bilabial','labiodental'], 'labial');
 	if (mergeNormal) {
-		hasPOAOverlap(consonants, ['palatal','alveolo-palatal'], 'palatal');
-		hasPOAOverlap(consonants, ['dental','alveolar'], 'coronal');
-		hasPOAOverlap(consonants, ['palatal','postalveolar'], 'postalveolar');
+		hasPOAOverlap({consonants, locked: settings.locked}, ['palatal','alveolo-palatal'], 'palatal');
+		hasPOAOverlap({consonants, locked: settings.locked}, ['dental','alveolar'], 'coronal');
+		hasPOAOverlap({consonants, locked: settings.locked}, ['coronal','retroflex'], 'coronal');
+		if (hasPOAOverlap({consonants, locked: settings.locked}, ['palatal','postalveolar'], 'palatal')) {
+			settings.locked.push('palatal')
+		}
 	}
 
 	if (mergeBasic) {
-		hasMOAOverlap(consonants, ['tap','trill'], (x) => { x.forEach(y => y.moa = 'tap-or-trill') })
-		hasMOAOverlap(consonants, ['approximant','lateral approximant'], (x) => { x.forEach(y => y.moa = 'approximant') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['tap','trill'], (x) => { x.forEach(y => y.moa = 'tap-or-trill') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['approximant','lateral approximant'], (x) => { x.forEach(y => y.moa = 'approximant') })
 
-		hasMOAOverlap(consonants, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') })
-		hasMOAOverlap(consonants, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') })
-		hasMOAOverlap(consonants, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') })
-		hasMOAOverlap(consonants, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') })
 	}
 
 	if (mergeNormal) {
-		hasMOAOverlap(consonants, ['approximant','tap-or-trill'], (x) => { x.forEach(y => y.moa = 'sonorant') })
-		hasMOAOverlap(consonants, ['fricative','lateral fricative'], (x) => { x.forEach(y => y.moa = 'fricative') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['approximant','tap-or-trill','trill','tap'], (x) => { x.forEach(y => y.moa = 'sonorant') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['fricative','lateral fricative'], (x) => { x.forEach(y => y.moa = 'fricative') })
 
-		if (!hasPOAOverlap(consonants, ['palatal','velar','uvular'], (x) => {
+		if (!hasPOAOverlap({consonants, locked: settings.locked}, ['palatal','velar','uvular'], (x) => {
 			x.forEach(y => y.poa = 'dorsal')
-		})){ hasPOAOverlap(consonants, ['palatal','velar'], (x) => {
+		})){ hasPOAOverlap({consonants, locked: settings.locked}, ['palatal','velar'], (x) => {
 			x.forEach(y => y.poa = 'dorsal')
 		})}
 	}
@@ -128,22 +202,24 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	if (mergeAggressive) {
 		const glottalSingle = consonants.filter(x=>x.poa=='glottal');
 		if (glottalSingle.length==1 && glottalSingle[0].plabel=='h' && !consonants.find(x=>x.plabel=='x')) {
-			hasPOAOverlap(consonants, ['velar'], 'dorsal');
+			hasPOAOverlap({consonants, locked: settings.locked}, ['velar'], 'dorsal');
 			glottalSingle[0].poa = 'dorsal';
 		}
 
-		hasMOAOverlap(consonants, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') }, true)
-		hasMOAOverlap(consonants, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') }, true)
-		hasMOAOverlap(consonants, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') }, true)
-		hasMOAOverlap(consonants, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') }, true)
 		
-		hasMOAOverlap(consonants, ['ejective','stop'], (x) => { x.forEach(y => y.moa = 'stop') })
+
+		hasMOAOverlap({consonants, locked: settings.locked}, ['stop','affricate'], (x) => { x.forEach(y => y.moa = 'stop') }, true)
+		hasMOAOverlap({consonants, locked: settings.locked}, ['prenasalized stop','prenasalized affricate'], (x) => { x.forEach(y => y.moa = 'prenasalized stop') }, true)
+		hasMOAOverlap({consonants, locked: settings.locked}, ['aspirated stop','aspirated affricate'], (x) => { x.forEach(y => y.moa = 'aspirated stop') }, true)
+		hasMOAOverlap({consonants, locked: settings.locked}, ['ejective','ejective affricate'], (x) => { x.forEach(y => y.moa = 'ejective') }, true)
+		
+		hasMOAOverlap({consonants, locked: settings.locked}, ['ejective','stop'], (x) => { x.forEach(y => y.moa = 'stop') })
 
 		consonants
 			.filter(x => ['approximant','tap-or-trill','tap','trill','lateral approximant'].includes(x.moa))
 			.forEach(y => y.moa = 'sonorant')
 
-		hasMOAOverlap(consonants, ['sonorant','fricative'], (x) => { x.forEach(y => y.moa = 'sonorant') })
+		hasMOAOverlap({consonants, locked: settings.locked}, ['sonorant','fricative'], (x) => { x.forEach(y => y.moa = 'sonorant') })
 	}
 
 	const container = document.createElement('div');
@@ -153,15 +229,27 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	table.classList.add('border')
 	container.appendChild(table);
 	
-	let DEFAULT_POA = ['bilabial','labiodental','labial','dental','alveolar','coronal','sibilant','postalveolar','retroflex','alveolo-palatal','dorsal','palatal','velar','uvular','pharyngeal','glottal'];
-	let DEFAULT_MOA = settings.nasalTop ? NASAL_MOA_ORDER : IPA_MOA_ORDER;
+	consonants.forEach(x => {
+		x.poa = x.poa.trim()
+		x.moa = x.moa.trim()
+	})
 
-	const OTHER_POA = [...new Set(consonants.filter(y => !DEFAULT_POA.includes(y.poa))
-			.map(y => y.poa))];
+	if (settings.coarticulated) {
+		consonants.forEach(x => {
+			if (!x.poamods) return;
+			x.poa = (x.poamods.join(' ')+' '+x.poa).trim()
+		})
+	}
+
+	const OTHER_POA = [...new Set(consonants.map(y => y.poa).filter(y => !DEFAULT_POA.includes(y)))];
 
 	for (const k of OTHER_POA) {
 		if (k==='undefined') continue;
-		const i = DEFAULT_POA.findIndex(x => k.endsWith(x));
+
+		const mods = splitPOAModifiers(k);
+
+
+		const i = DEFAULT_POA.findIndex(x => mods[0] == x);
 		DEFAULT_POA.splice(i+1, 0, k)
 	}
 

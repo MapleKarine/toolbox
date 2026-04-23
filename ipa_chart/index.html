@@ -70,8 +70,9 @@ i y u e ø o æ ɑ</textarea>
                 <label class="checkbox s12 m1-2"><input u-model="shortNames" type="checkbox"><span>Short names</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="nasalTop" type="checkbox" checked><span>Nasals on top</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="sibilant" type="checkbox"><span>Sibilant column</span></label>
-                <label class="checkbox s12 m1-2"><input u-model="labialized" type="checkbox" checked><span>Lab./Pal. columns</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="singleCell" type="checkbox"><span>Single cell</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="lateral" type="checkbox"><span>Lateral column</span></label>
+                <label class="checkbox s12 m12"><input u-model="coarticulated" type="checkbox" checked><span>Coarticulated columns</span></label>
             </nav>
         </fieldset>
         <fieldset class="s12 m6 vertical">
@@ -97,51 +98,77 @@ i y u e ø o æ ɑ</textarea>
 <div id="guide-container">
     <hr>
     <h2>Usage</h2>
-    <pre style="text-wrap-mode: wrap;">; example phonology
-add voiced bilabial stop "ᵐb"
-add [d] "ⁿd"
-add high "ɨ"
+    <p>The simplest way to use the tool is to paste vowels and consonants in the text box and let it be automatically organized. A finer control of the sounds can be made using commands.</p>
+    <p>Each command must be in its own line, lines starting with <code class="code">;</code> are ignored.</p>
+
+    <p>A title can be included with a line starting with hashtag like <code class="code"># Title</code>.</p>
+
+    <p>The <code class="code">add &lt;position&gt; "label"</code> command has a position that can be a series of keywords <code class="code">voiced bilabial stop</code> or an IPA segment written in square brackets <code class="code">[d]</code>; and a display text, written in double quotes <code class="code">"ᵐb"</code>.</p>
+    
+    <p>The <code class="code">merge &lt;names&gt; as &lt;target&gt;</code> command joins two or more rows or columns in a single one. The <code class="code">don't merge &lt;names&gt;</code> command on the other hand prevents rows or columns of being merged. See both commands in the Proto-Indo-European example below.</p>
+
+    <p>The <code class="code">rename &lt;row-col&gt; as &lt;name&gt;</code> can change the name or a row or column.</p>
+
+    <div class="grid">
+        <pre class="s12 m1-2 cm-s-maple-dark" style="text-wrap-mode: wrap;"><span class="cm-def">#</span> <span class="cm-string">Simple example</span>
+<span class="cm-def">add</span> <span class="cm-keyword">voiced bilabial stop</span> <span class="cm-string">"ᵐb"</span>
+<span class="cm-def">add</span> [d] <span class="cm-string">"ⁿd"</span>
+<span class="cm-def">add</span> <span class="cm-keyword">high</span> <span class="cm-string">"ɨ"</span>
 p t k s h m n w l
 a i u</pre>
-    <p>The simplest way to use the tool is to paste vowels and consonants in the text box and let it be automatically organized. A finer control of the sounds can be made using the <code class="code">add</code> command.</p>
-    <p>The list of phonemes must be the very last thing in the input.</p>
-    <p>The <code class="code">add</code> command can be followed by a series of keywords <code class="code">voiced bilabial stop</code> or an IPA segment written in square brackets <code class="code">[d]</code> that signifies its position, and a display text, written in quotes <code class="code">"ᵐb"</code>.</p>
-    <p>A title can be included with a line starting with hashtag like <code class="code"># Title</code>.</p>
-    <p>A line starting with <code class="code">;</code> is ignored.</p>
+        <pre class="s12 m1-2 cm-s-maple-dark" style="text-wrap-mode: wrap;"><span class="cm-def">#</span> <span class="cm-string">Proto-Indo-European</span>
+<span class="cm-def">config</span> singleCell <span class="cm-number">true</span>
+p t k kʷ b d g gʷ bʰ dʰ gʰ gʷʰ
+h₁ h₂ h₃ s w l r m n
+e o ē ō
+<span class="cm-comment">; include other symbols</span>
+<span class="cm-def">add</span> [j] <span class="cm-string">"y"</span>
+<span class="cm-def">add</span> [c] <span class="cm-string">"ḱ"</span>
+<span class="cm-def">add</span> [ɟ] <span class="cm-string">"ǵ"</span>
+<span class="cm-def">add</span> [ɟʰ] <span class="cm-string">"ǵʰ"</span>
+<span class="cm-def">rename</span> <span class="cm-keyword">glottal</span> <span class="cm-def">as</span> laryngeal
+<span class="cm-def">merge</span> <span class="cm-keyword">stop</span>, <span class="cm-keyword">aspirated stop</span> <span class="cm-def">as</span> <span class="cm-keyword">stop</span>
+<span class="cm-def">don't merge</span> <span class="cm-keyword">fricative</span></pre>
+    </div>
+
     <h3>Keywords</h3>
+    <p>The <code class="code">other</code> keyword can be used to add to the "other sounds" list.</p>
     <p>This is the list of consonant keywords:</p>
     <pre style="overflow-x: auto;">
-bilabial            stop                voiced
-labial              plosive             unvoiced
-labiodental         affricate           voiceless
-dental              lateral             prenasalized
-postalveolar        nasal               aspirated
-alveolar            trill
-retroflex           tap
-alveolopalatal      flap
-velar               fricative
-uvular              approximant
-pharyngeal          ejective
-glottal             implosive
+bilabial        stop            voiced
+labial          plosive         unvoiced
+labiodental     affricate       voiceless
+dental          lateral         prenasalized
+postalveolar    nasal           aspirated
+alveolar        trill           other
+retroflex       tap
+alveolopalatal  flap
+velar           fricative
+uvular          approximant
+pharyngeal      ejective
+glottal         implosive
 </pre>
     <p>This is the list of vowel keywords:</p>
     <pre style="overflow-x: auto;">
-high                close               near front
-near high           near close          near back
-high mid            close mid           front
-mid                 mid                 central
-low mid             open mid            back
-near low            near open
-low                 open
+high            close           near front
+near high       near close      near back
+high mid        close mid       front
+mid             mid             central
+low mid         open mid        back
+near low        near open
+low             open
 </pre>
     <h3>Vowel Position</h3>
     <p>Vowels can also be positioned by numerical coordinates, the coordinate <code class="code">(0, 0)</code> corresponds with the [i] position, and <code class="code">(2, 3)</code> with the [ɑ] position. Decimal numbers like <code class="code">(1.5, 1.25)</code> can be used.</p>
     <h2>Settings</h2>
-    <p>Settings can be changed using the visual interface or with the <code class="code">config &lt;config-name&gt; value</code> command.</p>
+    <p>Settings can be changed using the visual interface or with the <code class="code">config &lt;config-name&gt; value</code> command. Settings within the text have higher priority.</p>
     <p>The value can be <code class="code">true</code>,<code class="code">false</code> or a double quoted string <code class="code">"option"</code>.</p>
     <pre style="overflow-x: auto;" class="cm-s-maple-dark">
 <span class="cm-comment">; add a row for alveolar sibilants [s ts dz ...]</span>
 <span class="cm-def">config</span> sibilant <span class="cm-number">true</span>
+
+<span class="cm-comment">; add a row for lateral sounds [l tɬ ɬ ɮ ...]</span>
+<span class="cm-def">config</span> lateral <span class="cm-number">true</span>
 
 <span class="cm-comment">; move nasals to the top, taps and trills to the bottom</span>
 <span class="cm-def">config</span> nasalTop <span class="cm-number">true</span>
@@ -149,8 +176,8 @@ low                 open
 <span class="cm-comment">; arrange MOA the same order as the oficial IPA chart</span>
 <span class="cm-def">config</span> nasalTop <span class="cm-number">false</span>
 
-<span class="cm-comment">; add automatic columns for labialized and palatalized sounds with ʷʲ</span>
-<span class="cm-def">config</span> labialized <span class="cm-number">true</span>
+<span class="cm-comment">; add automatic columns for coarticulated sounds like ʷʲˠˤ</span>
+<span class="cm-def">config</span> coarticulated <span class="cm-number">true</span>
 
 <span class="cm-comment">; uses a single table cell instead of two for voiceless voiced pairs</span>
 <span class="cm-def">config</span> singleCell <span class="cm-number">true</span>
