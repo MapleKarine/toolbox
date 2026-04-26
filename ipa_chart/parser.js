@@ -1,13 +1,96 @@
 const IPA_CONSONANTS = {
-	'm': [1,'bilabial', 'nasal'],
-	'ɱ': [1,'labiodental', 'nasal'],
-	'n': [1,'alveolar', 'nasal'],
-	'ŋ': [1,'velar', 'nasal'],
-	'ɲ': [1,'palatal', 'nasal'],
-	'ɴ': [1,'uvular', 'nasal'],
-	'ɳ': [1,'retroflex', 'nasal'],
-	'n̪': [1,'dental', 'nasal'],
-	'n̠': [1,'postalveolar', 'nasal'],
+	'kp': [-1,'labiovelar', 'stop'],
+	'gb': [1,'labiovelar', 'stop'],
+	'mŋ': [1,'labiovelar', 'nasal'],
+
+	'ʘ': [-1, 'bilabial','click'],
+	'ǀ': [-1, 'dental','click'],
+	'ǃ': [-1, 'alveolar','click'],
+	'ǂ': [-1, 'palatal','click'],
+	'ǁ': [-1, 'alveolar','click', [], ['lateral']],
+	'kʘ': [-1, 'bilabial','click'],
+	'kǀ': [-1, 'dental','click'],
+	'kǃ': [-1, 'alveolar','click'],
+	'kǂ': [-1, 'palatal','click'],
+	'kǁ': [-1, 'alveolar','click', [], ['lateral']],
+	'gʘ': [1, 'bilabial','click'],
+	'gǀ': [1, 'dental','click'],
+	'gǃ': [1, 'alveolar','click'],
+	'gǂ': [1, 'palatal','click'],
+	'gǁ': [1, 'alveolar','click', [], ['lateral']],
+	'ŋʘ': [1, 'bilabial','click', [], ['prenasalized']],
+	'ŋǀ': [1, 'dental','click', [], ['prenasalized']],
+	'ŋǃ': [1, 'alveolar','click', [], ['prenasalized']],
+	'ŋǂ': [1, 'palatal','click', [], ['prenasalized']],
+	'ŋǁ': [1, 'alveolar','click', [], ['prenasalized','lateral']],
+	'ᵏʘ': [-1, 'bilabial','click'],
+	'ᵏǀ': [-1, 'dental','click'],
+	'ᵏǃ': [-1, 'alveolar','click'],
+	'ᵏǂ': [-1, 'palatal','click'],
+	'ᵏǁ': [-1, 'alveolar','click', [], ['lateral']],
+	'ᶢʘ': [1, 'bilabial','click'],
+	'ᶢǀ': [1, 'dental','click'],
+	'ᶢǃ': [1, 'alveolar','click'],
+	'ᶢǂ': [1, 'palatal','click'],
+	'ᶢǁ': [1, 'alveolar','click', [], ['lateral']],
+	
+	'm': [0,'bilabial', 'nasal'],
+	'ɱ': [0,'labiodental', 'nasal'],
+	'n': [0,'alveolar', 'nasal'],
+	'ŋ': [0,'velar', 'nasal'],
+	'ɲ': [0,'palatal', 'nasal'],
+	'ɴ': [0,'uvular', 'nasal'],
+	'ɳ': [0,'retroflex', 'nasal'],
+	'n̪': [0,'dental', 'nasal'],
+	'n̠': [0,'postalveolar', 'nasal'],
+
+	'ʦ': [-1,'alveolar','affricate'],
+	'ʣ': [1,'alveolar','affricate'],
+	'ʧ': [-1,'postalveolar','affricate'],
+	'ʤ': [1,'postalveolar','affricate'],
+	'ʨ': [-1,'alveolo-palatal','affricate'],
+	'ʥ': [1,'alveolo-palatal','affricate'],
+	'tʃ': [-1,'postalveolar', 'affricate'],
+	'ts': [-1,'alveolar', 'affricate'],
+	'dz': [1,'alveolar', 'affricate'],
+	'dʒ': [1,'postalveolar', 'affricate'],
+	'tɕ': [-1, 'alveolo-palatal','affricate'],
+	'dʑ': [1, 'alveolo-palatal','affricate'],
+	'ʈʂ': [-1, 'retroflex','affricate'],
+	'ɖʐ': [1, 'retroflex','affricate'],
+	't̪s̪': [-1, 'dental','affricate'],
+	'd̪z̪': [1, 'dental','affricate'],
+	't̠ʃ': [-1, 'postalveolar','affricate'],
+	'd̠ʒ': [1, 'postalveolar','affricate'],
+	'tʂ': [-1, 'retroflex','affricate'],
+	'dʐ': [1, 'retroflex','affricate'],
+	'pɸ': [-1, 'bilabial','affricate'],
+	'pϕ': [-1, 'bilabial','affricate'],
+	'bꞵ': [1, 'bilabial','affricate'],
+	'bβ': [1, 'bilabial','affricate'],
+	'p̪f': [-1, 'labiodental','affricate'],
+	'pf': [-1, 'labiodental','affricate'],
+	'b̪v': [1, 'labiodental','affricate'],
+	'bv': [1, 'labiodental','affricate'],
+	't̪θ': [-1, 'dental','affricate'],
+	'd̪ð': [1, 'dental','affricate'],
+	'tθ': [-1, 'dental','affricate'],
+	'dð': [1, 'dental','affricate'],
+	'cç': [-1, 'palatal','affricate'],
+	'ɟʝ': [1, 'palatal','affricate'],
+	'kx': [-1, 'velar','affricate'],
+	'gɣ': [1, 'velar','affricate'],
+	'qχ': [-1, 'uvular','affricate'],
+	'qꭓ': [-1, 'uvular','affricate'],
+	'ɢʁ': [1, 'uvular','affricate'],
+	'ʡʜ': [-1, 'pharyngeal','affricate'],
+	'ʡʢ': [1, 'pharyngeal','affricate'],
+	'ʔh': [-1, 'glottal','affricate'],
+	'tɬ': [-1,'alveolar', 'affricate', [], ['lateral']],
+	'tɬʼ': [-1,'alveolar', 'affricate', [], ['lateral']],
+	'tꞎ': [-1,'retroflex', 'affricate', [], ['lateral']],
+	'dɮ': [1,'alveolar', 'affricate', [], ['lateral']],
+
 	'ʔ': [-1,'glottal', 'stop'],
 	'p': [-1,'bilabial', 'stop'],
 	'p̪': [-1,'labiodental', 'stop'],
@@ -32,56 +115,21 @@ const IPA_CONSONANTS = {
 	'ʄ': [1,'palatal', 'implosive'],
 	'ʛ': [1,'uvular', 'implosive'],
 	'ᶑ': [1,'retroflex', 'implosive'],
-	'tʃ': [-1,'postalveolar', 'affricate'],
-	'ts': [-1,'alveolar', 'affricate'],
-	'dz': [1,'alveolar', 'affricate'],
-	'dʒ': [1,'postalveolar', 'affricate'],
-	'tɕ': [-1, 'alveolo-palatal','affricate'],
-	'dʑ': [1, 'alveolo-palatal','affricate'],
-	'ʈʂ': [-1, 'retroflex','affricate'],
-	'ɖʐ': [1, 'retroflex','affricate'],
-	't̪s̪': [-1, 'dental','affricate'],
-	'd̪z̪': [1, 'dental','affricate'],
-	't̠ʃ': [-1, 'postalveolar','affricate'],
-	'd̠ʒ': [1, 'postalveolar','affricate'],
-	'tʂ': [-1, 'retroflex','affricate'],
-	'dʐ': [1, 'retroflex','affricate'],
-	'pɸ': [-1, 'bilabial','affricate'],
-	'bβ': [1, 'bilabial','affricate'],
-	'p̪f': [-1, 'labiodental','affricate'],
-	'pf': [-1, 'labiodental','affricate'],
-	'b̪v': [1, 'labiodental','affricate'],
-	'bv': [1, 'labiodental','affricate'],
-	't̪θ': [-1, 'dental','affricate'],
-	'd̪ð': [1, 'dental','affricate'],
-	'tθ': [-1, 'dental','affricate'],
-	'dð': [1, 'dental','affricate'],
-	'cç': [-1, 'palatal','affricate'],
-	'ɟʝ': [1, 'palatal','affricate'],
-	'kx': [-1, 'velar','affricate'],
-	'gɣ': [1, 'velar','affricate'],
-	'qχ': [-1, 'uvular','affricate'],
-	'ɢʁ': [1, 'uvular','affricate'],
-	'ʡʜ': [-1, 'pharyngeal','affricate'],
-	'ʡʢ': [1, 'pharyngeal','affricate'],
-	'ʔh': [-1, 'glottal','affricate'],
+	
 
-	'tɬ': [-1,'alveolar', 'lateral affricate'],
-	'ɬ̪': [-1,'dental', 'lateral fricative'],
-	'ɬ': [-1,'alveolar', 'lateral fricative'],
-	'tɬʼ': [-1,'alveolar', 'lateral affricate'],
-	'ɬ̪ʼ': [-1,'dental', 'lateral fricative'],
-	'ɬʼ': [-1,'alveolar', 'lateral fricative'],
-	'ꞎ': [-1,'retroflex', 'lateral fricative'],
-	'ɮ': [1,'alveolar', 'lateral fricative'],
-	'ʎ̝': [1,'palatal', 'lateral fricative'],
-	'ʟ̝': [1,'velar', 'lateral fricative'],
-	'tꞎ': [-1,'retroflex', 'lateral affricate'],
-	'dɮ': [1,'alveolar', 'lateral affricate'],
+	'ɬ̪': [-1,'dental', 'fricative', [], ['lateral']],
+	'ɬ': [-1,'alveolar', 'fricative', [], ['lateral']],
+	'ɬ̪ʼ': [-1,'dental', 'fricative', [], ['lateral']],
+	'ɬʼ': [-1,'alveolar', 'fricative', [], ['lateral']],
+	'ꞎ': [-1,'retroflex', 'fricative', [], ['lateral']],
+	'ɮ': [1,'alveolar', 'fricative', [], ['lateral']],
+	'ʎ̝': [1,'palatal', 'fricative', [], ['lateral']],
+	'ʟ̝': [1,'velar', 'fricative', [], ['lateral']],
 	'ç': [-1,'palatal', 'fricative'],
 	'χ': [-1,'uvular', 'fricative'],
 	'f': [-1,'labiodental', 'fricative'],
 	'ɸ': [-1,'bilabial', 'fricative'],
+	'ϕ': [-1,'bilabial', 'fricative'],
 	'θ': [-1,'dental', 'fricative'],
 	'θ̠': [-1,'alveolar', 'fricative'],
 	'θ̪': [-1,'alveolar', 'fricative'],
@@ -96,6 +144,7 @@ const IPA_CONSONANTS = {
 	'ʁ': [1,'uvular', 'fricative'],
 	'v': [1,'labiodental', 'fricative'],
 	'β': [1,'bilabial', 'fricative'],
+	'ꞵ': [1,'bilabial', 'fricative'],
 	'ð': [1,'dental', 'fricative'],
 	'ð̠': [1,'alveolar', 'fricative'],
 	'ð̪': [1,'alveolar', 'fricative'],
@@ -108,13 +157,14 @@ const IPA_CONSONANTS = {
 	'ɦ': [1,'glottal', 'fricative'],
 	'ħ': [-1, 'pharyngeal','fricative'],
 	'ʕ': [1, 'pharyngeal','fricative'],
-	'l': [0,'alveolar', 'lateral approximant'],
-	'l̪': [0,'dental', 'lateral approximant'],
-	'l̠': [0,'postalveolar', 'lateral approximant'],
-	'ɭ': [0,'retroflex', 'lateral approximant'],
-	'ʟ': [0,'velar', 'lateral approximant'],
-	'ʟ̠': [0,'uvular', 'lateral approximant'],
-	'ʎ': [0,'palatal', 'lateral approximant'],
+	'l': [0,'alveolar', 'approximant',[],['lateral']],
+	'ɫ': [0,'alveolar', 'approximant',['velarized'],['lateral']],
+	'l̪': [0,'dental', 'approximant',[],['lateral']],
+	'l̠': [0,'postalveolar', 'approximant',[],['lateral']],
+	'ɭ': [0,'retroflex', 'approximant',[],['lateral']],
+	'ʟ': [0,'velar', 'approximant',[],['lateral']],
+	'ʟ̠': [0,'uvular', 'approximant',[],['lateral']],
+	'ʎ': [0,'palatal', 'approximant',[],['lateral']],
 	'w': [0,'bilabial', 'approximant'],
 	'β̞': [0,'bilabial', 'approximant'],
 	'ʍ': [-1, 'bilabial', 'approximant'],
@@ -126,6 +176,7 @@ const IPA_CONSONANTS = {
 	'ʋ': [0,'labiodental', 'approximant'],
 	'ð̞': [1,'dental','approximant'],
 	'ʁ̞': [1,'uvular','approximant'],
+	'ɥ': [0, 'palatal','approximant', ['labialized']],
 	'r': [0,'alveolar', 'trill'],
 	'r̠': [0,'postalveolar', 'trill'],
 	'ɽ': [0,'retroflex', 'tap'],
@@ -136,14 +187,10 @@ const IPA_CONSONANTS = {
 	'ʡ̮': [0, 'pharyngeal','tap'],
 	'ɾ': [0, 'alveolar','tap'],
 	'ⱱ̟': [0, 'bilabial','tap'],
+	'ɺ': [0, 'alveolar','tap', [], ['lateral']],
 	'ʜ': [-1, 'pharyngeal','trill'],
 	'ʢ': [1, 'pharyngeal','trill'],
 	'ɽr': [0, 'retroflex','trill'],
-
-	'ɥ': [0, 'palatal','approximant', ['labialized']],
-	'ɺ': [0, 'alveolar','tap'],
-
-	
 }
 
 const IPA_VOWELS = {
@@ -196,8 +243,10 @@ const IPA_VOWELS_FORMANT = {
 	'i': [1 , 0.0 , 0.0],
 	'e': [2 , 0.0 , 1.0],
 	'ɛ': [3 , 0.0 , 2.0],
+	'ε': [3 , 0.0 , 2.0],
 	'a': [4 , 0.0 , 3.0],
 	'ɑ': [5 , 2.0 , 3.0],
+	'α': [5 , 2.0 , 3.0],
 	'ɔ': [6 , 2.0 , 2.0],
 	'o': [7 , 2.0 , 1.0],
 	'u': [8 , 2.0 , 0.0],
@@ -226,6 +275,7 @@ const IPA_VOWELS_FORMANT = {
 
 
 const MOA_KEYWORDS = [
+	['click','click',-1],
 	['implosive','implosive',1],
 	['stop','stop',-1],
 	['plosive','stop',-1],
@@ -253,6 +303,7 @@ const POA_KEYWORDS = [
 	['dental', 'dental'],
 	['postalveolar', 'postalveolar'],
 	['alveolar', 'alveolar'],
+	['sibilant', 'sibilant'],
 	['retroflex', 'retroflex'],
 	['alveopalatal', 'alveolo-palatal'],
 	['alveolopalatal', 'alveolo-palatal'],
@@ -270,13 +321,16 @@ const POA_MODIFIERS = [
 	'palatalized',
 	'labialized',
 	'velarized',
-	'velarized',
 	'pharyngealized',
 ];
 
 const MOA_MODIFIERS = [
 	'prenasalized',
 	'aspirated',
+	'ejective',
+	'voiced',
+	'voiceless',
+	'breathy',
 ];
 
 const VOICE_KEYWORDS = [
@@ -325,6 +379,18 @@ function splitPOAModifiers(x) {
 	return mods;
 }
 
+function splitMOAModifiers(x) {
+	const mods = [];
+	MOA_MODIFIERS.forEach(y => {
+		if (x.includes(y)) {
+			x = x.replace(y, '').trim();
+			mods.push(y);
+		}
+	});
+	mods.unshift(x)
+	return mods;
+}
+
 
 function keywords(position, settings) {
 	position = position.toLowerCase().replace(/-/g, ' ');
@@ -332,6 +398,13 @@ function keywords(position, settings) {
 	let x = 1, y = null;
 	let moa = 'undefined', poa = 'undefined', voice = 0;
 	let poamods = [];
+	let moamods = [];
+
+	position = position.replaceAll(/(row|col)\(([^)]+)\)/g, (_,k,t) => {
+		if (k=='row') { moa = t }
+		else if (k=='col') { poa = t }
+		return ''
+	});
 
 	for (const kw of HEIGHT_KEYWORDS) {
 		const re = new RegExp(`\\b${kw[0]}\\b`, 'g');
@@ -358,24 +431,28 @@ function keywords(position, settings) {
 		const re = new RegExp(`\\b${kw[0]}\\b`, 'g');
 		if (position.match(re)) { voice = kw[1]; break; }
 	}
+	
+	if (/lateral/.test(position)) {
+		if (settings.lateral && poa=='undefined') {
+			poa = 'lateral'
+		} else {
+			moamods.push('lateral');
+		}
+	}
+	if (moa == 'stop' && /ejective/.test(position)) moa = 'ejective';
+	if (moa != 'ejective' && /ejective/.test(position)) moamods.push('ejective');
+	if (/aspirated/.test(position)) moamods.push('aspirated');
+	if (/prenasali[sz]ed/.test(position)) moamods.push('prenasalized');
 
-	if (position.includes("lateral")) moa = 'lateral '+moa;
-	if (!moa.includes('ejective') && position.includes("ejective")) moa = 'ejective '+moa;
-	if (position.includes("aspirated")) moa = 'aspirated '+moa;
-	if (position.includes("prenasalized")) moa = 'prenasalized '+moa;
-	if (position.includes("prenasalised")) moa = 'prenasalized '+moa;
-
-
-
-	if (position.includes("labialized")) poamods.push('labialized');
-	if (position.includes("palatalized")) poamods.push('palatalized');
-	if (position.includes("labialised")) poamods.push('labialized');
-	if (position.includes("palatalised")) poamods.push('palatalized');
+	if (/labiali[sz]ed/.test(position)) poamods.push('labialized');
+	if (/palatali[sz]ed/.test(position)) poamods.push('palatalized');
+	if (/velari[sz]ed/.test(position)) poamods.push('velarized');
+	if (/pharyngeali[sz]ed/.test(position)) poamods.push('pharyngealized');
 	
 	if (position.includes("other")) return {x, y, voice, moa:'undefined', poa:'undefined', vowel: false};
 
-	if (moa !== 'undefined' && poa !== 'undefined') return {x, y, voice, moa, poa, poamods, vowel: false};
-	if (y !== null) return {x, y, voice, moa, poa, poamods, vowel: true};
+	if (moa !== 'undefined' && poa !== 'undefined') return {x, y, voice, moa, poa, poamods, moamods, vowel: false};
+	if (y !== null) return {x, y, voice, moa, poa, poamods, moamods, vowel: true};
 
 	return null;
 }
@@ -392,18 +469,20 @@ function getCardinalLayout(settings) {
 
 function parseConsonantIPA(s, settings) {
 	let poamods = [];
+	let moamods = [];
 
 	if (s.includes('ʷ')) poamods.push('labialized');
 	if (s.includes('ʲ')) poamods.push('palatalized');
 	if (s.includes('ˠ')) poamods.push('velarized');
 	if (s.includes('ˤ')) poamods.push('pharyngealized');
 
-	const voiceless = s.includes('̥') || s.includes('̊');
-	const aspiration = s.includes('ʰ') || s.includes('ʱ');
-	const prenasalized = /^[ᵐⁿᵑᶮᶰᶯ]/.test(s);
+	if (/[ʼ’]/.test(s)) moamods.push('ejective');
+	if (/[ʰʱ]/.test(s)) moamods.push('aspirated');
+	if (/^[ᵐⁿᵑᶮᶰᶯ]/.test(s)) moamods.push('prenasalized');
+	
 	let consonant = s
 		.replaceAll(/[ʷʲˤˠʰʱ]/g,'')
-		.replaceAll(/^[ᵐⁿᵑᶮᶰᶯ]/g,'')
+		.replaceAll(/[ᵐⁿᵑᶮᶰᶯ]/g,'')
 		.replace('ː','')
 		.replace('͡','')
 		.replace('̼','')
@@ -411,6 +490,8 @@ function parseConsonantIPA(s, settings) {
 		.replace('̥','')
 		.replace('̥','')
 		.replace('ʼ','')
+		.replace('\u0324','')
+		.replace('\u032C','')
 
 
 	let segment = IPA_CONSONANTS[consonant];
@@ -421,23 +502,23 @@ function parseConsonantIPA(s, settings) {
 		return {};
 	}
 
+	let voice = segment[0];
+	if (s.includes('̥') || s.includes('̊')) voice = -1
+	if (s.includes('\u032C')) voice = 1
+	if (s.includes('ʱ')) voice = 1
+	if (s.includes('\u0324')) {
+		moamods.push('breathy')
+		if (voice == -1) voice = 1;
+	}
+
 	let moa = segment[2];
 	let poa = segment[1];
 	if (segment[3]) poamods.push(...segment[3]);
+	if (segment[4]) moamods.push(...segment[4]);
 	
 	if (s.includes('\u033C')) poa = 'linguo-labial';
-	if (aspiration) moa = 'aspirated '+moa;
-	if (prenasalized) moa = 'prenasalized '+moa;
-	if (s.includes('ʼ')) moa = ('ejective '+moa).replace('ejective stop', 'ejective');
-
-	// if (labialized)
-
-	// if (settings.coarticulated && labialized) poa = 'labialized '+poa;
-	// if (settings.coarticulated && palatalized) poa = 'palatalized '+poa;
-	// if (settings.coarticulated && velarized) poa = 'velarized '+poa;
-	// if (settings.coarticulated && pharyngealized) poa = 'pharyngealized '+poa;
-
-	return {voice: voiceless ? -1 : segment[0], poa, poamods, moa};
+	
+	return {voice, poa, poamods, moamods, moa};
 }
 
 function getPosition(position, settings, error) {
@@ -456,11 +537,11 @@ function getPosition(position, settings, error) {
 
 		vowel = chart[vowel[0]??''];
 		if (!vowel) {
-			const {voice, poa, moa, poamods} = parseConsonantIPA(s, settings);
+			const {voice, poa, moa, poamods, moamods} = parseConsonantIPA(s, settings);
 
 			if (poa === undefined) return null;
 
-			return {label: position.slice(1, -1), voice, poa, moa, poamods, vowel: false};
+			return {label: position.slice(1, -1), voice, poa, moa, poamods, moamods, vowel: false};
 		}
 
 		return {label: position.slice(1, -1), cardinal: vowel[0], x: vowel[1], y: vowel[2], vowel: true};
@@ -489,6 +570,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 
 	settings.forceMerge = [];
 	settings.locked = [];
+	settings.ignoreMods = [];
 
 	const nonCmdLines = [];
 
@@ -522,12 +604,21 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 			let [names, final] = mergeMatch[2].trim().split(' as ');
 			names = names.split(',').map(x => x.trim());
 			if (names.length == 0) continue;
-			if (mergeMatch[1] && final == undefined) {
+			if (mergeMatch[1] == undefined && final == undefined && names.length == 1 && names[0].endsWith('voicing')) {
+				const name = names[0].replace('voicing','').trim()
+				settings.forceMerge.push([[name], name])
+			} else if (mergeMatch[1] && final == undefined) {
 				settings.locked.push(...names);
 			} else if (mergeMatch[1] == undefined && final != undefined) {
 				settings.forceMerge.push([names, final])
 			}
 			continue
+		}
+
+		const ignoreMatch = line.match(/^ignore (.*)/);
+		if (ignoreMatch && ignoreMatch[1]) {
+			settings.ignoreMods.push(ignoreMatch[1]);
+			continue;
 		}
 
 		const match = line.match(/^add\s+(?:(?:dot\s+)?(left|right))?\s*(\[[^\]]+\]|\([^)]+\)|[^"]+)\s*(?:"([^"]*)")?/m);
@@ -566,9 +657,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 
 		vowels.push({
 			...position,
-			label, plabel: position.label, vowel: position.vowel, x: position.x, y: position.y, dot, 
-			// voice: position.voice, moa: position.moa, poa: position.poa,
-			// poa: position.poamods,
+			label, plabel: position.label, vowel: position.vowel, x: position.x, y: position.y, dot,
 		});
 	}
 
@@ -583,8 +672,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 				return;
 			}
 			if (!p.cardinal) {
-				vowels.push({...p, label: v, plabel: p.label, vowel: p.vowel, x: p.x, y: p.y, dot: 'middle', 
-					// voice: p.voice, moa: p.moa, poa: p.poa
+				vowels.push({...p, label: v, plabel: p.label, vowel: p.vowel, x: p.x, y: p.y, dot: 'middle',
 				});
 				return;
 			}
@@ -601,10 +689,6 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 
 		vowels.push({label: v.text.join(' '), x: v.x, y: v.y, dot: 'middle', vowel: true});
 	}
-
-	// vowels.forEach(x => {
-	// 	if (x.poa) x.poa2 = splitPOAModifiers(x.poa)
-	// })
 
 	return vowels;
 }

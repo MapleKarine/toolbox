@@ -53,6 +53,15 @@ function renderHTML(value) {
 
 const none = document.createTextNode("...");
 function update() {
+
+  if (udata.showSettings == false) {
+    document.getElementById('settings-1').style.display = 'none';
+    document.getElementById('settings-2').style.display = 'none';
+  } else {
+    document.getElementById('settings-1').style.display = 'block';
+    document.getElementById('settings-2').style.display = 'block';
+  }
+
   const value = editor.getValue();
   if (value.trim() == '') {
     transcription_output.replaceChildren(none);

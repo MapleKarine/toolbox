@@ -44,6 +44,9 @@
      margin: 40px 0px;
 ">
     <div id="input-container">
+    <div class="grid" oninput="update()" style="margin-bottom: 1rem;">
+        <label class="checkbox s12"><input u-model="showSettings" type="checkbox" checked><span>Show settings</span></label>
+    </div>
     <textarea id="gloss-input" style="
         width: 100%;
         resize: vertical;
@@ -54,7 +57,7 @@ i y u e ø o æ ɑ</textarea>
 
 
     <div class="grid" oninput="update()">
-        <fieldset class="s12 m6">
+        <fieldset id="settings-1" class="s12 m6">
             <legend>Consonant settings</legend>
             <nav class="grid">
                 <div class="field suffix s12">
@@ -70,12 +73,13 @@ i y u e ø o æ ɑ</textarea>
                 <label class="checkbox s12 m1-2"><input u-model="shortNames" type="checkbox"><span>Short names</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="nasalTop" type="checkbox" checked><span>Nasals on top</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="sibilant" type="checkbox"><span>Sibilant column</span></label>
-                <label class="checkbox s12 m1-2"><input u-model="singleCell" type="checkbox"><span>Single cell</span></label>
                 <label class="checkbox s12 m1-2"><input u-model="lateral" type="checkbox"><span>Lateral column</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="singleCell" type="checkbox"><span>Single cell</span></label>
+                <label class="checkbox s12 m1-2"><input u-model="voicingRows" type="checkbox"><span>Voicing as rows</span></label>
                 <label class="checkbox s12 m12"><input u-model="coarticulated" type="checkbox" checked><span>Coarticulated columns</span></label>
             </nav>
         </fieldset>
-        <fieldset class="s12 m6 vertical">
+        <fieldset id="settings-2" class="s12 m6 vertical">
             <legend>Vowel settings</legend>
             <nav class="vertical">
                 <nav class="grid">
@@ -160,6 +164,31 @@ low             open
 </pre>
     <h3>Vowel Position</h3>
     <p>Vowels can also be positioned by numerical coordinates, the coordinate <code class="code">(0, 0)</code> corresponds with the [i] position, and <code class="code">(2, 3)</code> with the [ɑ] position. Decimal numbers like <code class="code">(1.5, 1.25)</code> can be used.</p>
+    <h3>Custom Rows and Columns</h3>
+    <p>New rows or columns can be made within the <code class="code">add</code> command using the special syntax <code class="code">row(name)</code> for manner of articulation or <code class="code">col(name)</code> for place of articulation.</p>
+    <p>The position of the new row or column can be controlled by writing <code class="code">base>name</code>, this will place the row/col <code class="code">name</code> after the <code class="code">base</code> row/col, if the base is empty it is placed in the first position, if nothing is specified its placed last.</p>
+    <p>A complete example using these features is given below for the Shona language:</p>
+    <pre style="overflow-x: auto;" class="cm-s-maple-dark">
+<span class="cm-def">#</span> <span class="cm-string">Shona</span>
+<span class="cm-def">config</span> sibilant <span class="cm-number">true</span>
+<span class="cm-def">config</span> voicingRows <span class="cm-number">true</span>
+m n ɲ ŋ m̤ n̤
+p t k b̤ d̤ ɡ̤ ɓ ɗ
+ᵐb ⁿd ⁿd͡ʒ̤ ᵑɡ ⁿz̤
+p͡f t͡s t͡ʃ b͡v̤ d͡z̤ d͡ʒ̤
+f s ʃ v̤ z̤ ʒ̤ ɦ
+ʋ r j w
+a e i o u
+<span class="cm-comment">; Custom column whistled</span>
+<span class="cm-def">add</span> <span class="cm-keyword">labiodental breathy nasal</span> <span class="cm-string">"mʋ̤"</span>
+<span class="cm-def">add</span> <span class="cm-def">col(</span><span class="cm-keyword">alveolar</span><span class="cm-def">&gt;</span>whistled<span class="cm-def">)</span> <span class="cm-keyword">fricative</span> <span class="cm-string">"sᶲ"</span>
+<span class="cm-def">add</span> <span class="cm-def">col(</span><span class="cm-keyword">alveolar</span><span class="cm-def">&gt;</span>whistled<span class="cm-def">)</span> <span class="cm-keyword">voiced fricative</span> <span class="cm-string">"z̤ᵝ"</span>
+<span class="cm-def">add</span> <span class="cm-def">col(</span><span class="cm-keyword">alveolar</span><span class="cm-def">&gt;</span>whistled<span class="cm-def">)</span> <span class="cm-keyword">affricate</span> <span class="cm-string">"t͡sᶲ"</span>
+<span class="cm-def">add</span> <span class="cm-def">col(</span><span class="cm-keyword">alveolar</span><span class="cm-def">&gt;</span>whistled<span class="cm-def">)</span> <span class="cm-keyword">voiced affricate</span> <span class="cm-string">"d͡z̤ᵝ"</span>
+<span class="cm-def">add</span> <span class="cm-keyword">prenasalized</span> <span class="cm-def">col(</span><span class="cm-keyword">alveolar</span><span class="cm-def">&gt;</span>whistled<span class="cm-def">)</span> <span class="cm-keyword">voiced fricative</span> <span class="cm-string">"ⁿz̤ᵝ"</span>
+<span class="cm-def">ignore</span> <span class="cm-keyword">breathy</span>
+<span class="cm-def">merge</span> <span class="cm-keyword">prenasalized stop</span>, <span class="cm-keyword">prenasalized fricative</span> <span class="cm-def">as</span> <span class="cm-keyword">stop</span><span class="cm-def">&gt;</span><span class="cm-keyword">prenasalized</span></pre>
+    <p>Using these complex features might cause bugs with the auto merger or weird behaviour.</p>
     <h2>Settings</h2>
     <p>Settings can be changed using the visual interface or with the <code class="code">config &lt;config-name&gt; value</code> command. Settings within the text have higher priority.</p>
     <p>The value can be <code class="code">true</code>,<code class="code">false</code> or a double quoted string <code class="code">"option"</code>.</p>
@@ -181,6 +210,9 @@ low             open
 
 <span class="cm-comment">; uses a single table cell instead of two for voiceless voiced pairs</span>
 <span class="cm-def">config</span> singleCell <span class="cm-number">true</span>
+
+<span class="cm-comment">; places voiced consonants in their own rows instead of side by side</span>
+<span class="cm-def">config</span> voicingRows <span class="cm-number">true</span>
 
 <span class="cm-comment">; abbreviates row/col names for compactness (unstable)</span>
 <span class="cm-def">config</span> shortNames <span class="cm-number">true</span>
