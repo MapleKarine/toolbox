@@ -1,7 +1,7 @@
 const IPA_CONSONANTS = {
 	'kp': [-1,'labiovelar', 'stop'],
 	'gb': [1,'labiovelar', 'stop'],
-	'mŋ': [1,'labiovelar', 'nasal'],
+	'ŋm': [1,'labiovelar', 'nasal'],
 
 	'ʘ': [-1, 'bilabial','click'],
 	'ǀ': [-1, 'dental','click'],

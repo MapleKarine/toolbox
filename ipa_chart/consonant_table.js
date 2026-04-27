@@ -120,7 +120,6 @@ function hasMOAModOverlap({consonants, locked}, moa) {
 	const p = consonants.filter(x => x.moa == moa)
 	if (p.length == 0) return false;
 	const x = p.map(x => x.poamods?.join('')+x.poa+x.voice);
-	console.log(x)
 	const noOverlap = x.length == [...new Set(x)].length;
 	if (noOverlap) { p.forEach(x => x.moamods = []) }
 	return noOverlap;
@@ -315,7 +314,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	function findIndex(list, val) {
 		if (val=='') return -1;
 		const i = list.findIndex(x => val == x);
-		if (i == -1) { return list.length-2; }
+		if (i == -1) { return list.length-1; }
 		return i;
 	}
 
@@ -329,6 +328,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 			label = b
 			i = findIndex(DEFAULT_POA, a);
 			consonants.forEach(x => {if (x.poa == k) x.poa = b});
+			if (DEFAULT_POA.includes(b)) DEFAULT_POA = DEFAULT_POA.filter(x=>x!=b);
 		} else {
 			i = findIndex(DEFAULT_POA, mods[0]);
 		}
