@@ -326,6 +326,7 @@ const POA_MODIFIERS = [
 
 const MOA_MODIFIERS = [
 	'prenasalized',
+	'nasalized',
 	'aspirated',
 	'ejective',
 	'voiced',
@@ -443,6 +444,7 @@ function keywords(position, settings) {
 	if (moa != 'ejective' && /ejective/.test(position)) moamods.push('ejective');
 	if (/aspirated/.test(position)) moamods.push('aspirated');
 	if (/prenasali[sz]ed/.test(position)) moamods.push('prenasalized');
+	if (/\bnasali[sz]ed/.test(position)) moamods.push('nasalized');
 
 	if (/labiali[sz]ed/.test(position)) poamods.push('labialized');
 	if (/palatali[sz]ed/.test(position)) poamods.push('palatalized');
@@ -479,6 +481,7 @@ function parseConsonantIPA(s, settings) {
 	if (/[ʼ’]/.test(s)) moamods.push('ejective');
 	if (/[ʰʱ]/.test(s)) moamods.push('aspirated');
 	if (/^[ᵐⁿᵑᶮᶰᶯ]/.test(s)) moamods.push('prenasalized');
+	if (/̃/.test(s)) moamods.push('nasalized');
 	
 	let consonant = s
 		.replaceAll(/[ʷʲˤˠʰʱ]/g,'')
@@ -490,6 +493,7 @@ function parseConsonantIPA(s, settings) {
 		.replace('̥','')
 		.replace('̥','')
 		.replace('ʼ','')
+		.replace(/̃/,'')
 		.replace('\u0324','')
 		.replace('\u032C','')
 
