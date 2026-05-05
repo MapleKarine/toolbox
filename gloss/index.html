@@ -34,7 +34,13 @@
     </button>
   </nav>
 </header>
-<main x-data="{settings: {renderingOption: 'html'}, showOptions: false}" x-init="$watch('settings', value => update(value))">
+<main x-data="{settings: {
+  renderingOption: 'html',
+  discordObjColor: '5',
+  discordMetaColor: '7',
+  discordTranslationInside: false,
+  discordMobileFriend: true,
+}, showOptions: false}" x-init="$watch('settings', value => update(value))">
 <div style="
      display: flex;
      flex-direction: column;
@@ -68,12 +74,39 @@
       </fieldset>
       <fieldset x-show="showOptions && settings.renderingOption == 'plain'">
         <legend>Settings</legend>
+        <span>Nothing :P</span>
       </fieldset>
       <fieldset x-show="showOptions && settings.renderingOption == 'obsidian'">
         <legend>Settings</legend>
+        <span>Nothing :P</span>
       </fieldset>
       <fieldset x-show="showOptions && settings.renderingOption == 'discord-fancy'">
         <legend>Settings</legend>
+        <div class="grid">
+          <div class="s12">
+            <span>Discord colors (desktop only): </span>
+            <b style="color: #ffffff">Color0</b>
+            <b style="color: #dc322f">Color1</b>
+            <b style="color: #268bd2">Color2</b>
+            <b style="color: #859900">Color3</b>
+            <b style="color: #b58900">Color4</b>
+            <b style="color: #d33682">Color5</b>
+            <b style="color: #2aa198">Color6</b>
+            <b style="color: #4f545c">Color7</b>
+            <b style="">Color8</b>
+          </div>
+          <div class="s12 m6 horizontal">
+            <div style="padding-block: 0.25rem; padding-right: 0.75rem;">Object language color</div>
+            <div class="field tiny"><input x-model="settings.discordObjColor" type="number" value="5" min="0" max="8" style="width: 3.5rem;"></div>
+          </div>
+          <div class="s12 m6 horizontal">
+            <div style="padding-block: 0.25rem; padding-right: 0.75rem;">Meta language color</div>
+            <div class="field tiny"><input x-model="settings.discordMetaColor" type="number" value="7" min="0" max="8" style="width: 3.5rem;"></div>
+          </div>
+          <label class="checkbox s12"><input type="checkbox" x-model="settings.discordTranslationInside"><span>Translation inside codeblock</span></label>
+          <label class="checkbox s12"><input type="checkbox" x-model="settings.discordMobileFriend" checked><span>Mobile friendly codeblock text width</span></label>
+        </div>
+        
       </fieldset>
     </div>
   </div>

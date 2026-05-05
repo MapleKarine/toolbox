@@ -1,4 +1,33 @@
-function translateDiscordFancy(message, outerContainer) {
+function translateDiscordFancy(message, outerContainer, settings) {
+
+  const discordColors = [
+    '#ffffff',
+    '#dc322f',
+    '#268bd2',
+    '#859900',
+    '#b58900',
+    '#d33682',
+    '#2aa198',
+    '#4f545c',
+    'var(--fg-color)',
+  ]
+
+  const discordColorsEscape = [
+    '[0;38m',
+    '[0;31m',
+    '[0;34m',
+    '[0;32m',
+    '[0;33m',
+    '[0;35m',
+    '[0;36m',
+    '[0;37m',
+    '[0;0m',
+  ]
+
+  const highlightColor = discordColors[settings.discordObjColor]??'#d33682';
+  const metaColor = discordColors[settings.discordMetaColor]??'var(--fg-color)';
+  const highlightEscape = discordColorsEscape[settings.discordObjColor]??'[0;35m';
+  const metaEscape = discordColorsEscape[settings.discordMetaColor]??'[0;0m';
 
   function strip(text) {
     return text
@@ -27,6 +56,7 @@ function translateDiscordFancy(message, outerContainer) {
         } else {
           text = text.slice(1, -2);
         }
+        class_ = c;
       }
       let span = document.createElement("span");
       span.innerHTML = text
@@ -35,9 +65,14 @@ function translateDiscordFancy(message, outerContainer) {
         .replaceAll('\uf702', ')')
         .replaceAll('&null;', 'Ø')
         .replaceAll('&low;', '__')
-        .replaceAll(ABBR_RE, (m, tag, title) => `<span style='font-size: 0px;'>[4m</span><span style='text-decoration: underline;'>${tag}</span><span style='font-size: 0px;'>${color}</span>`)
+        .replaceAll(ABBR_RE, (m, tag, title) => `<span style='font-size: 0px;'>[4m</span><span style='text-decoration: underline;'>${tag}</span><span style='font-size: 0px;'>${color}</span>`)
         .replaceAll(SUB_RE, (m, tag) => `${tag}`)
       cell.appendChild(span);
+      if (class_) {
+        span.innerHTML = `<span style='font-size: 0px;'>${discordColorsEscape[+class_]??color}</span>`+
+            `<span style='color: ${discordColors[+class_]??'var(--fg-color)'};'>${span.innerHTML}</span>`+
+            `<span style='font-size: 0px;'>${color}</span>`
+      }
     }
 
     return cell;
@@ -67,9 +102,7 @@ function translateDiscordFancy(message, outerContainer) {
         .replaceAll('&low;', '＿')
         .replaceAll(ABBR_RE, (m, tag, title) => `<span style='font-size: 0px;'>__</span><span style='text-decoration: underline;'>${tag}</span><span style='font-size: 0px;'>__</span>`)
         .replaceAll(SUB_RE, (m, tag) => `${tag}`)
-      if (class_) { ansi(cell, '**'); span.style.fontWeight = 'bold' }
       cell.appendChild(span);
-      if (class_) { ansi(cell, '**') }
     }
 
     return cell;
@@ -95,13 +128,14 @@ function translateDiscordFancy(message, outerContainer) {
   let rest_ = null;
 
   if (lines && lines[0] && lines[0][0].trim() == "#") {
-    const h2 = document.createElement("h2");
+    const h2 = document.createElement("strong");
     h2.style.marginBottom = '1rem';
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ');
-    ansi(h2, '## ');
+    ansi(h2, '**');
     h2.appendChild(fmtMd(text));
     container.appendChild(h2);
     lines = lines.slice(1);
+    ansi(h2, '**\n');
   }
 
   let m;
@@ -134,6 +168,8 @@ function translateDiscordFancy(message, outerContainer) {
 
   const min = Math.max(...lines.map(s=>s.length));
 
+
+
   const groups = [];
   let j = 0;
   let k = 0;
@@ -151,7 +187,7 @@ function translateDiscordFancy(message, outerContainer) {
       lines[i][j] = lines[i][j].padEnd(maxl+dif, ' ');
     }
 
-    if (k + maxl >= 32) {
+    if (k + maxl >= (settings.discordMobileFriend ? 32 : 80)) {
       k = 0;
       groups.push(j)
     }
@@ -161,17 +197,18 @@ function translateDiscordFancy(message, outerContainer) {
   groups.push(j)
 
   const pre = document.createElement('pre');
+  pre.append('```ansi\n')
 
   let gp = 0;
   for (const k of groups) {
     for (let i = 0; i < lmin; i++) {
-      if (italic[i]) ansi(pre, '[0;35m');
-      else ansi(pre, '[0;30m');
+      if (italic[i]) ansi(pre, highlightEscape);
+      else ansi(pre, metaEscape);
       for (let j = gp; j < k; j++) {
         const col = lines[i][j];
-        const text = fmtPre(col.replaceAll('\2',' ')+' ', italic[i] ? '[0;35m' : '[0;30m');
-        if (italic[i]) text.style.color = '#d33682'
-        else text.style.color = '#4f545c'
+        const text = fmtPre(col.replaceAll('\2',' ')+' ', italic[i] ? highlightEscape : metaEscape);
+        if (italic[i]) text.style.color = highlightColor
+        else text.style.color = metaColor
         pre.appendChild(text);
       }
 
@@ -182,10 +219,27 @@ function translateDiscordFancy(message, outerContainer) {
     gp = k;
   }
 
-  if (lines.length) {
-    ansi(container, '```ansi\n');
+  
+
+  if (settings.discordTranslationInside) {
+    if (rest_) {
+      const rest = document.createElement("span");
+      rest.appendChild(fmtPre(rest_,'[0;00m'));
+      pre.appendChild(rest)
+      pre.append('\n')
+    }
+    
+    pre.append('```')
+
     container.appendChild(pre);
-    ansi(container, '```');
+    container.style.marginBottom = '1.5em';
+
+    return container;
+  }
+
+  if (lines.length) {
+    pre.append('```')
+    container.appendChild(pre);
   }
 
 
@@ -200,10 +254,10 @@ function translateDiscordFancy(message, outerContainer) {
   return container
 }
 
-function renderDiscordFancy(value) {
+function renderDiscordFancy(value, settings) {
   const container = document.createElement('p');
   value.split(/\n--+\n/).forEach(v => {
-    const k = translateDiscordFancy(v, container);
+    const k = translateDiscordFancy(v, container, settings);
     container.appendChild(k);
   });
 
