@@ -393,13 +393,15 @@ function splitMOAModifiers(x) {
 }
 
 
-function keywords(position, settings) {
+function keywords(position, template, settings) {
 	position = position.toLowerCase().replace(/-/g, ' ');
 
-	let x = 1, y = null;
-	let moa = 'undefined', poa = 'undefined', voice = 0;
-	let poamods = [];
-	let moamods = [];
+	let x = template.x ?? 1, y = template.y ?? null;
+	let moa = template.moa ?? 'undefined',
+		poa = template.poa ?? 'undefined',
+		voice = template.voice ?? 0;
+	let poamods = template.poamods ?? [];
+	let moamods = template.moamods ?? [];
 
 	position = position.replaceAll(/(row|col)\(([^)]+)\)/g, (_,k,t) => {
 		if (k=='row') { moa = t }
@@ -526,13 +528,17 @@ function parseConsonantIPA(s, settings) {
 }
 
 function getPosition(position, settings, error) {
+	position = position.trim()
+
 	if (position[0] == '(' && position.includes(',')) {
 		const axis = position.slice(1, -1).split(',');
 		return {x: parseFloat(axis[0]?.trim()||'0'), y: parseFloat(axis[1]?.trim()||'0'), vowel: true};
 	}
 
-	if (position[0] == '[') {
-		let s = position.slice(1, -1);
+	const ipa = position.match(/\[([^\]]+)\]/);
+	let item = {};
+	if (ipa) {
+		let s = ipa[1];
 		if (s[0]=='(' && s[s.length-1]==')') s = s.slice(1, -1);
 
 		let vowel = s.normalize("NFD");
@@ -543,18 +549,23 @@ function getPosition(position, settings, error) {
 		if (!vowel) {
 			const {voice, poa, moa, poamods, moamods} = parseConsonantIPA(s, settings);
 
-			if (poa === undefined) return null;
+			// if (poa === undefined) return null;
 
-			return {label: position.slice(1, -1), voice, poa, moa, poamods, moamods, vowel: false};
+			item = {label: ipa[1], voice, poa, moa, poamods, moamods, vowel: false}
+		} else {
+			item = {label: ipa[1], cardinal: vowel[0], x: vowel[1], y: vowel[2], vowel: true};
 		}
 
-		return {label: position.slice(1, -1), cardinal: vowel[0], x: vowel[1], y: vowel[2], vowel: true};
+		position = position.replace(ipa[0],'').trim()
 	}
 
-	const kw = keywords(position, settings);
-	if (!kw) {
-		return null;
+	if (position==='') {
+		return item;
 	}
+
+	const kw = keywords(position, item, settings);
+	if (!kw) return null;
+	if (item.label) kw.label = item.label;
 	return kw
 }
 
@@ -666,11 +677,16 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 	}
 
 	
-
-	nonCmdLines.join(' ').split(/[\s,]+/g)
+	nonCmdLines.join(' ').replaceAll(/\s+"/g,'"').split(/[\s,]+/g)
 		.forEach(v => {
 			if (!v.trim()) return;
+
 			const p = getPosition(`[${v}]`, settings, error);
+
+			if (v.match(/"([^"]+)"/)) {
+				v = v.match(/"([^"]+)"/)[1]
+			}
+
 			if (!p) {
 				vowels.push({label: v, vowel: false, voice: 0, moa: 'undefined', poa: 'undefined'});
 				return;
