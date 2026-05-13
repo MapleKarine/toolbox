@@ -271,8 +271,8 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	container.appendChild(table);
 	
 	consonants.forEach(x => {
-		if (x.poa) x.poa = x.poa.trim()
-		if (x.moa) x.moa = x.moa.trim()
+		x.poa = x.poa.trim()
+		x.moa = x.moa.trim()
 	})
 
 	if (settings.coarticulated) {
@@ -368,6 +368,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 
 	const usedSet = new Set();
 
+
 	for (const moa of DEFAULT_MOA) {
 		let tr = document.createElement('tr');
 		let tr2 = null;
@@ -433,12 +434,16 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	}
 
 	{
-	const sounds = consonants.filter(x => !usedSet.has(x)).map(x=>x.label);
-	if (sounds.length) {
-		const other = document.createElement('p');
-		other.innerText = `Other sounds: ${sounds.join(' ')}`
-		container.appendChild(other);
-	}}
+		const sounds = consonants.filter(x => !usedSet.has(x)).map(x=>x.label);
+		if (sounds.length) {
+			const other = document.createElement('p');
+			other.innerText = `Other sounds: ${sounds.join(' ')}`
+			container.appendChild(other);
+		}
+		if (consonants.length == sounds.length) {
+			container.removeChild(table);
+		}
+	}
 
 	return container.outerHTML;
 };

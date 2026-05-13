@@ -369,6 +369,7 @@ const BACKNESS_KEYWORDS = [
 ]
 
 function splitPOAModifiers(x) {
+	if (!x) return [];
 	const mods = [];
 	POA_MODIFIERS.forEach(y => {
 		if (x.includes(y)) {
@@ -381,6 +382,7 @@ function splitPOAModifiers(x) {
 }
 
 function splitMOAModifiers(x) {
+	if (!x) return [];
 	const mods = [];
 	MOA_MODIFIERS.forEach(y => {
 		if (x.includes(y)) {
@@ -560,12 +562,15 @@ function getPosition(position, settings, error) {
 	}
 
 	if (position==='') {
+		if (item.vowel == false && item.poa == undefined) return null;
 		return item;
 	}
 
 	const kw = keywords(position, item, settings);
 	if (!kw) return null;
 	if (item.label) kw.label = item.label;
+
+
 	return kw
 }
 

@@ -85,12 +85,13 @@ const renderVowels = (vowels, settings=DEFAULT_SETTINGS) => {
 	const container = document.createElement('div');
 	container.setAttribute('class', 'vowel-chart-container');
 
+	if (vowels.length == 0) return container.outerHTML;
+
 	const svgEl = document.createElement("svg");
 	container.appendChild(svgEl);
 	const textFloat = document.createElement('div');
 	textFloat.setAttribute('class', 'vowel-chart-text-float-container');
 	container.appendChild(textFloat);
-
 
 	for (const vowel of vowels) {
 		const [x, y] = positionFunc(vowel.x, vowel.y);
