@@ -271,8 +271,8 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	container.appendChild(table);
 	
 	consonants.forEach(x => {
-		x.poa = x.poa.trim()
-		x.moa = x.moa.trim()
+		if (x.poa) x.poa = x.poa.trim()
+		if (x.moa) x.moa = x.moa.trim()
 	})
 
 	if (settings.coarticulated) {
