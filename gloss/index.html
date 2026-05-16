@@ -23,6 +23,7 @@
     <script src="render/plainText.js"></script>
     <script src="/assets/theme-toggle.js"></script>
     <script defer src="/assets/alpinejs.min.js"></script>
+    <script defer src="html2canvas.min.js"></script>
 </head>
 <body>
 <header>
@@ -123,7 +124,7 @@
 </div>
 <script src="gloss_abrev.js"></script>
 <script src="index.js"></script>
-<div class="guide-container">
+<div id="guide-container-hide" class="guide-container">
 <hr>
 <h2>Usage</h2>
 <pre style="text-wrap-mode: wrap;">
@@ -179,7 +180,7 @@
 <script>
 if (window.location.hash.length > 1) {
   document.getElementById('input-container').style.display = 'none';
-  document.getElementById('guide-container').style.display = 'none';
+  document.getElementById('guide-container-hide').style.display = 'none';
   const key = window.location.hash.slice(1)
 
   fetch(`https://rosidb.netlify.app/.netlify/functions/kv?key=${key}`)
@@ -189,18 +190,6 @@ if (window.location.hash.length > 1) {
       update();
     })
 } else {
-  // const buttons = document.querySelectorAll("#output-options button");
-
-  // buttons.forEach(button => {
-  //     button.addEventListener("click", function() {
-  //         buttons.forEach(btn => btn.classList.remove("active"));
-  //         this.classList.add("active");
-  //         renderingOption = this.getAttribute("value");
-  //         update();
-  //     });
-  // });
-
-
   loadSession();
   update();
 }

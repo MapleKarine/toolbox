@@ -10,7 +10,31 @@ let editor = CodeMirror.fromTextArea(input, {
   theme: 'maple-dark',
 });
 
+async function toImage() {
+  transcription_output.style.width = '600px';
+  transcription_output.style.padding = '1rem 1rem 0 0';
+
+  const canvas = await html2canvas(transcription_output, {
+    backgroundColor: 'oklch(0.21 0.005 235)',
+  });
+
+  transcription_output.style.removeProperty('width');
+  transcription_output.style.removeProperty('padding');
+
+  canvas.toBlob((blob) => {
+    const item = new ClipboardItem({ "image/png": blob });
+    navigator.clipboard.write([item]).then(() => {
+      alert("Image copied to clipboard!");
+    }).catch((err) => {
+      console.error("Could not copy: ", err);
+    });
+  });
+}
+
 function copy() {
+  if (renderingOption == 'html') {
+    return toImage();
+  }
   const selection = window.getSelection();
   const range = document.createRange();
   range.selectNodeContents(transcription_output);
@@ -219,9 +243,10 @@ function update(settings={}) {
   transcription_output.replaceChildren(container);
 
   if (renderingOption == 'html') {
-    document.getElementById('share-button').style.display = 'none';
+    document.getElementById('share-button').innerText = 'Copy PNG';
   } else {
-    document.getElementById('share-button').style.display = 'inline-block';
+    document.getElementById('share-button').innerText = 'Copy';
+    // document.getElementById('share-button').style.display = 'inline-block';
   }
 
   sessionStorage.setItem("glosser-session-input", value);
