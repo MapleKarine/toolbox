@@ -87,3 +87,27 @@
 .consonant-table-container {
   margin-top: 0.75rem;
 }
+
+.theme-black {
+  --bg-color: black;
+  --table-border: #282828;
+
+  padding: 1rem;
+  border-radius: 5px;
+  
+  background: var(--bg-color);
+  font-family: "Calibri";
+}
+
+.theme-black td:empty {
+  background-color: #0c0c0c;
+}
+
+.theme-black th {
+  color: #999999;
+  font-weight: initial;
+}
+
+.theme-black .consonant-table-container tr th:nth-child(1) {
+  text-align: left;
+}

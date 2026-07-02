@@ -25,6 +25,7 @@ CodeMirror.defineSimpleMode("simplemode", {
 	config: [
 		{regex: /\d+/, token: "number", pop: true },
 		{regex: /\b(true|false)\b/, token: "number", pop: true },
+		{regex: /"[^"]+"/, token: "string", pop: true  },
 	],
 	customCell: [
 		moakws,

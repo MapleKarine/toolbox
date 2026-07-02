@@ -29,6 +29,7 @@ function renderHTML(value) {
 
   const settings = {
     size: 40,
+    theme: null,
     ...udata,
   };
   const segments = parse(value,settings,(msg) => {
@@ -47,6 +48,8 @@ function renderHTML(value) {
     renderConsonants(segments.filter(x=>!x.vowel),settings)+
     renderVowels(segments.filter(x=>x.vowel),settings);
   container.appendChild(output);
+
+  if (settings.theme) container.classList.add('theme-'+settings.theme);
 
   return container
 }
