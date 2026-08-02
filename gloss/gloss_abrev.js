@@ -172,6 +172,7 @@ const GLOSS_ABREV = {
     "PERF": "Perfect",
     "PF": "Patient Focus",
     "PFV": "Perfective",
+    "PL": "Plural",
     "PLUP": "Pluperfect",
     "POL": "Polite",
     "POSS": "Possessive",
@@ -230,6 +231,7 @@ const GLOSS_ABREV = {
 }
 
 function abrev(tag) {
-    if (+tag[0]>0&&+tag[0]<=4) tag = tag[0]+'.'+tag.slice(1);
+    tag = tag.replaceAll('>','.acts on.')
+    if (+tag[0]>0&&+tag[0]<=4&&tag[1]!='.') tag = tag[0]+'.'+tag.slice(1);
     return tag.split('.').map(t => GLOSS_ABREV[t] ?? t).join(' ');
 }

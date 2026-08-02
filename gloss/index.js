@@ -64,7 +64,7 @@ function share(el) {
 }
 
 const FMT_RE = /(\([^()]*\)\d?)/g
-const ABBR_RE = /\{([A-Za-z0-9_.>=-]+)(?:\:([^}]+))?\}/g
+const ABBR_RE = /\{([A-Za-z0-9.>=-][A-Za-z0-9.>=_-]*)(?:\:([^}]+))?\}/g
 const SUB_RE = /\{_([^}]+)\}/g
 
 
@@ -104,7 +104,18 @@ function translate(message, outerContainer, settings) {
         .replaceAll('\uf702', ')')
         .replaceAll('&null;', '∅')
         .replaceAll('&low;', '＿')
-        .replaceAll(ABBR_RE, (m, tag, title) => `<abbr style="${styleOptions.abbrstyle}" title="${title ?? abrev(tag)}">${settings.useSmallCaps?tag.toLowerCase():tag}</abbr>`)
+        .replaceAll(ABBR_RE, (m, tag, title) => {
+
+          if (tag.includes('_')) {
+            const [a,b] = tag.split('_')
+            tag = `${a}<sub>${b}</sub>`
+            title = title ?? abrev(a)
+          } else {
+            title = title ?? abrev(tag)
+          }
+          tag = tag.replace('>','›')
+          return `<abbr style="${styleOptions.abbrstyle}" title="${title}">${settings.useSmallCaps?tag.toLowerCase():tag}</abbr>`
+        })
         .replaceAll(SUB_RE, (m, tag) => `<sub>${tag}</sub>`)
       if (class_) span.classList.add(class_);
       cell.appendChild(span);
