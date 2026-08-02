@@ -206,7 +206,10 @@ function translate(message, outerContainer, settings) {
     rest.style.marginBlockStart = '0em';
     if (settings.autoQuotes) {
       rest.style.fontStyle = 'italic';
-      if (!rest_.includes('\n') && !rest_.startsWith('"')) rest_ = `“${rest_}”`
+      if (!rest_.includes('\n') &&
+        !rest_.startsWith('"') &&
+        !rest_.startsWith('\'' &&
+          !rest_.startsWith('“'))) rest_ = `“${rest_}”`
     }
     rest.appendChild(fmt(rest_,'span',settings));
     container.appendChild(rest)
