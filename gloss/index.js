@@ -64,7 +64,7 @@ function share(el) {
 }
 
 const FMT_RE = /(\([^()]*\)\d?)/g
-const ABBR_RE = /\{([A-Z0-9.>-]+)(?:\:([^}]+))?\}/g
+const ABBR_RE = /\{([A-Za-z0-9_.>=-]+)(?:\:([^}]+))?\}/g
 const SUB_RE = /\{_([^}]+)\}/g
 
 
@@ -140,8 +140,9 @@ function translate(message, outerContainer, settings) {
     container = document.createElement("li");
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
     const el = fmt(text, 'p', settings);
-    el.style.marginBottom = '0.8em';
-    el.style.marginTop = '10px';
+    el.style.marginBottom = '0.4em';
+    el.style.marginTop = '18px';
+    el.style.fontWeight = 'bold';
     container.appendChild(el);
     lines = lines.slice(1);
   }
@@ -149,8 +150,9 @@ function translate(message, outerContainer, settings) {
   while (lines && lines[0] && lines[0][0].trim() == "!") {
     const text = lines[0].slice(1).join(' ').replaceAll('\2',' ')
     const el = fmt(text, 'p',settings);
-    el.style.marginBottom = '0.8em';
-    el.style.marginTop = '10px';
+    el.style.marginBottom = '0.4em';
+    el.style.marginTop = '1.5em';
+    el.style.fontWeight = 'bold'
     container.appendChild(el);
     lines = lines.slice(1);
   }
@@ -184,7 +186,12 @@ function translate(message, outerContainer, settings) {
       const col = lines[i][j] ?? '\u00a0';
       let td = document.createElement("span");
       td.style.height = '1.4em';
-      if (italic[i]) td.style.fontStyle = 'italic';
+      if (italic[i]) {
+        td.style.fontStyle = 'italic'
+        if (!settings.noColor) td.style.color = 'var(--accent)'
+      } else {
+        if (!settings.noColor) td.style.color = 'var(--muted-color)'
+      }
 
       td.appendChild(fmt(col.replaceAll('\2',' '),'span',settings))
       tr.appendChild(td);
@@ -197,6 +204,10 @@ function translate(message, outerContainer, settings) {
   if (rest_) {
     const rest = document.createElement("p");
     rest.style.marginBlockStart = '0em';
+    if (settings.autoQuotes) {
+      rest.style.fontStyle = 'italic';
+      if (!rest_.includes('\n') && !rest_.startsWith('"')) rest_ = `“${rest_}”`
+    }
     rest.appendChild(fmt(rest_,'span',settings));
     container.appendChild(rest)
   }
@@ -211,7 +222,7 @@ function renderHTML(value, settings) {
   value.split(/\n--+\n/).forEach(v => {
     const k = translate(v, container, settings);
     container.appendChild(k);
-    container.appendChild(document.createElement("br"))
+    // container.appendChild(document.createElement("br"))
   });
 
   return container

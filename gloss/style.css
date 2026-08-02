@@ -57,6 +57,9 @@
   display: table-row;
 }
 
+abbr {
+  text-underline-offset: 4px;
+}
 
 #transcription-result ol {
   counter-reset: list;

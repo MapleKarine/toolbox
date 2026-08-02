@@ -28,7 +28,7 @@
 <body>
 <header>
   <nav class="top">
-    <a href="/toolbox/" class="button circle transparent"><i class="icon">home</i></a>
+    <a href="/toolbox/" class="button circle transparent"><img class="responsive" src="/favicon.png"></a>
     <span class="max" style="font-weight: bold;">Glosser</span>
     <button tabindex="-1" id="theme-switch" title="Change theme" aria-label="Change theme" class="transparent circle">
       <i class='icon'>light_mode</i>
@@ -41,7 +41,11 @@
   discordMetaColor: '7',
   discordTranslationInside: false,
   discordMobileFriend: true,
-}, showOptions: false}" x-init="$watch('settings', value => update(value))">
+  useSmallCaps: true,
+  noAbbr: false,
+  noColor: false,
+  autoQuotes: true,
+}, showOptions: false}" x-init="$watch('settings', value => update(value)); update(settings)">
 <div style="
      display: flex;
      flex-direction: column;
@@ -69,8 +73,10 @@
       <fieldset x-show="showOptions && settings.renderingOption == 'html'">
         <legend>Settings</legend>
         <div class="grid">
-          <label class="checkbox s1-2 m1-3"><input type="checkbox" x-model="settings.useSmallCaps"><span>Use smallcaps</span></label>
-          <label class="checkbox s1-2 m1-3"><input type="checkbox" x-model="settings.noAbbr"><span>No text decoration</span></label>
+          <label class="checkbox s1-2 m3"><input type="checkbox" x-model="settings.useSmallCaps"><span>Use smallcaps</span></label>
+          <label class="checkbox s1-2 m3"><input type="checkbox" x-model="settings.noAbbr"><span>No underline</span></label>
+          <label class="checkbox s1-2 m3"><input type="checkbox" x-model="settings.noColor"><span>No color</span></label>
+          <label class="checkbox s1-2 m3"><input type="checkbox" x-model="settings.autoQuotes"><span>Auto quotes</span></label>
         </div>
       </fieldset>
       <fieldset x-show="showOptions && settings.renderingOption == 'plain'">
