@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+  <meta property="og:title" content="Text Tools" />
+  <meta name="description" content="A collection of some simple text tools that can be combined in a pipeline." />
+  <meta property="og:description" content="A collection of some simple text tools that can be combined in a pipeline." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Maple Karine Toolbox" >
+  <meta name="theme-color" content="#6d72c6">
+  <title>Text Tools</title>
+  <link rel="stylesheet" type="text/css" href="/assets/style.css">
+  <script src="/assets/theme-toggle.js"></script>
+  <style>
+    textarea {
+      resize: vertical;
+      field-sizing: content;
+      max-height: 40vh;
+      outline: none;
+    }
+  </style>
+  <script defer src="/assets/alpinejs.min.js"></script>
+  <script src="tools.js"></script>
+</head>
+<body>
+<header>
+  <nav class="top">
+    <a href="/toolbox/" class="button circle transparent"><img class="responsive" src="/favicon.png"></a>
+    <!-- <a href="/toolbox/" class="button circle transparent"><i class="icon">home</i></a> -->
+    <span class="max" style="font-weight: bold;">Text Tools</span>
+    <button tabindex="-1" id="theme-switch" title="Change theme" aria-label="Change theme" class="transparent circle">
+      <i class='icon'>light_mode</i>
+    </button>
+  </nav>
+</header>
+<main x-data="{
+  initialInput: $store.session.load(),
+  pipeline: [],
+  tools: $store.ToolList,
+  runPipeline(input_) {
+    $store.session.store(this.initialInput);
+    let current = this.initialInput;
+    for (const step of this.pipeline) {
+      step.output = current = String(step.run(current, step.dataOptions));
+    }
+  },
+  move(id, dir) {
+    const index = this.pipeline.findIndex(tool => tool.id === id);
+    if (index === -1 || index+dir >= this.pipeline.length || index+dir < 0) return;
+    const [item] = this.pipeline.splice(index, 1);
+    this.pipeline.splice(index+dir, 0, item);
+  },
+}" x-effect="runPipeline(initialInput)">
+<div class="vertical">
+  <textarea class="textarea" x-model.debounce.100ms="initialInput" spellcheck="false"></textarea>
+  <template x-for="tool in pipeline" :key="tool.id">
+    <div class="grid border p-2" style="gap: 0.5rem">
+      <nav class="s12">
+        <nav>
+          <span x-text="tool.name"></span>
+          <div x-show="tool.options.by!=null" class="field suffix">
+            <select x-model="tool.dataOptions.by">
+              <template x-for="option in tool.options.by">
+                <option :value="option" x-text="camel2words(option)"></option>
+              </template>
+            </select>
+            <i class="icon">arrow_drop_down</i>
+          </div>
+        </nav>
+        
+        <div class="max"></div>
+        <div style="justify-self: right;">
+          <button class="circle transparent" @click="move(tool.id, -1)" title="Move up"><i class="icon">keyboard_arrow_up</i></button>
+          <button class="circle transparent" @click="move(tool.id, 1)" title="Move down"><i class="icon">keyboard_arrow_down</i></button>
+          <button class="circle transparent" @click="navigator.clipboard.writeText(tool.output)"><i class="icon">content_copy</i></button>
+          <button class="circle transparent" @click="pipeline = pipeline.filter(x => x.id != tool.id)"><i class="icon">delete</i></button>
+        </div>
+      </nav>
+      <nav class="vertical s12 m4">
+        <template x-for="[key, value] in processOptions(tool)" :key="key">
+          <div @change="runPipeline(initialInput)" x-html="buildOption(key, value)"></div>
+        </template>
+      </nav>
+      <textarea class="textarea s12 m8" spellcheck="false" x-text="tool.output" readonly></textarea>
+    </div>
+  </template>
+  <!-- <div class="horizontal">
+    <div class="max"></div>
+    <button class="circle border"><i class="icon">add</i></button>
+    <div class="max"></div>
+  </div> -->
+</div>
+<div class="grid">
+  <template x-for="tool in tools">
+    <button class="s4 border" x-text="tool.name" @click="pushTool(pipeline, tool)"></button>
+  </template>
+</div>
+</main>
+<script>
+function camel2words(str) {
+  const result = str.replace(/([A-Z])/g, ' $1');
+  return result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();
+}
+
+function pushTool(pipeline, tool) {
+  const dataOptions = {};
+  const id = crypto.randomUUID();
+  for (const [key, value] of Object.entries(tool.options)) {
+    if (Array.isArray(value)) {
+      dataOptions[key] = value[0];
+    } else if (typeof value === 'object') {
+      dataOptions[key] = value.value;
+    } else {
+      dataOptions[key] = value;
+    }
+  }
+  pipeline.push({...tool, dataOptions, id})
+}
+
+function processOptions(tool) {
+  const gui = []
+  for (const [key, value] of Object.entries(tool.options)) {
+    if (key == 'by') {
+      if (tool.dataOptions.by=='regex') gui.push(['regex', ''])
+      continue;
+    }
+    gui.push([key, value])
+  }
+  return gui;
+}
+
+function buildOption(key, value) {
+  const keyName = camel2words(key);
+  if (Array.isArray(value)) {
+    return `<div class="field suffix">
+              <select x-model="tool.dataOptions[key]">${value.map(option => `<option value="${option}">${camel2words(option)}</option>`)}
+              </select>
+              <label>${keyName}</label>
+              <i class="icon">arrow_drop_down</i>
+            </div>`
+  }
+  if (typeof value === 'boolean') {
+    return `<label class="checkbox">
+              <input x-model="tool.dataOptions[key]" type="checkbox"><span>${keyName}</span>
+            </label>`
+  }
+  if (typeof value === 'string') {
+    return `<div class="field"><input style="width: 100%;" type="text" placeholder="" x-model="tool.dataOptions[key]"><label>${keyName}</label></div>`
+  }
+  if (typeof value === 'number') {
+    return `<div class="field"><input style="width: 100%;" type="number" placeholder="" x-model.number="tool.dataOptions[key]"><label>${keyName}</label></div>`
+  }
+  if (!typeof value === 'object') return ``;
+  if (value.kind === 'textarea') {
+    return `<textarea class="textarea" x-model="tool.dataOptions[key]" style="width: 100%; field-sizing: fixed;"></textarea>`
+  }
+  return ``
+}
+
+document.addEventListener('alpine:init', () => {
+  Alpine.store('session', {
+    load() {
+      const value = sessionStorage.getItem("text-tools-session-input");
+      return value ?? "";
+    },
+    store(value) {
+      sessionStorage.setItem("text-tools-session-input", value);
+    }
+  })
+
+  Alpine.store('ToolList', [{
+    name: 'Count',
+    run(text, options) {
+      const fn = x => TextTools.count(x, options.by, options.regex&&new RegExp(options.regex, 'g'));
+      return options.eachLine ? text.split('\n').map(fn).join('\n') : fn(text);
+    },
+    options: {
+      by: ['characters','words','lines','regex'],
+      eachLine: false,
+    }
+  },{
+    name: 'Unique',
+    run(text, options) {
+      if (options.lowercase) text = text.toLowerCase()
+      if (!options.eachLine) {
+        return FormatResults.array(TextTools.unique(text, options.by), options.by=='characters'?'':'\n');
+      }
+      const separator = {
+        characters: '',
+        words: ' ',
+        lines: '\n',
+      }[options.by] ?? '\n'
+      const fn = x => FormatResults.array(TextTools.unique(x, options.by), separator);
+      return text.split('\n').map(fn).join('\n');
+    },
+    options: {
+      by: ['lines','words','characters'],
+      eachLine: false,
+      lowercase: true,
+    }
+  },{
+    name: 'Frequency',
+    run(text, options) {
+      return FormatResults.object(TextTools.frequency(options.lowercase?text.toLowerCase():text, options.by, options.reverse));
+    },
+    options: {
+      by: ['characters','words','lines'],
+      reverse: true,
+      lowercase: true,
+    }
+  },{
+    name: 'Sort Lines',
+    run(text, options) {
+      return FormatResults.array(TextTools.sortLines(text, options.by, options.reverse));
+    },
+    options: {
+      by: ['alphabetical','length'],
+      reverse: false,
+    }
+  },{
+    name: 'Sort Words',
+    run(text, options) {
+      return FormatResults.array(TextTools.sortWords(text, options.by, options.reverse));
+    },
+    options: {
+      by: ['alphabetical','length'],
+      reverse: false,
+    }
+  },{
+    name: 'Shuffle',
+    run(text, options) {
+      return TextTools.shuffle(text, options.by);
+    },
+    options: {
+      by: ['lines', 'words', 'characters', 'obfuscate'],
+    }
+  },{
+    name: 'Find Regex',
+    run(text, options) {
+      const re = new RegExp(options.regex);
+      if (options.eachLine) {
+        return TextTools.eachLine(text, x => TextTools.find(x, re))
+      }
+      return TextTools.find(text, re);
+    },
+    options: {
+      regex: '',
+      eachLine: true,
+    }
+  },{
+    name: 'Replace Regex',
+    run(text, options) {
+      if (options.rules==='') return text;
+      const relist = options.rules.split('\n').flatMap(x => {
+        const m = x.match(/\/((?:\\\/|[^/])*)\/((?:\\\/|[^/])*)\/([isuv]*)/);
+        if (!m) return [];
+        return {re: new RegExp(m[1], "g"+m[3]), to: m[2]};
+      })
+      for (const {re, to} of relist) {
+        if (options.eachLine) {
+          text = text.split(LINE_RE).map(x => TextTools.replace(x, re, to)).join('\n');
+        } else {
+          text = TextTools.replace(text, re, to);
+        }
+      }
+      return text;
+    },
+    options: {
+      eachLine: true,
+      rules: {kind: 'textarea', value: '/a/b/'},
+    }
+  },{
+    name: 'Filter Regex',
+    run(text, options) {
+      if (options.regex==='') return text;
+      const re = new RegExp(options.regex);
+      const match = options.reverse ? (x=>!x.match(re)) : (x=>x.match(re))
+      if (options.by==='lines') {
+        return text.split(LINE_RE).filter(match).join('\n');
+      }
+      if (options.by==='words') {
+        let wre = WORD_RE;
+        if (options.fixWhitespace) wre = /[\p{L}\p{N}_']+\s*/gu
+        return text.replaceAll(wre, m => match(m) ? '' : m);
+      }
+    },
+    options: {
+      by: ['lines','words'],
+      regex: '',
+      reverse: false,
+      fixWhitespace: true,
+    }
+  },{
+    name: 'Prefixes',
+    run(text, options) {
+      return TextTools.prefixes(text, options.by, Number(options.length));
+    },
+    options: {
+      by: ['words','lines'],
+      length: 2,
+    }
+  },{
+    name: 'Suffixes',
+    run(text, options) {
+      return TextTools.suffixes(text, options.by, Number(options.length));
+    },
+    options: {
+      by: ['words','lines'],
+      length: 2,
+    }
+  },{
+    name: 'Slice Regex',
+    run(text, options) {
+      const fn = options.inclusive
+        ? ((x) => {
+          const re = new RegExp(options.start);
+          const start = options.start===''?0:TextTools.findIndex(x, re, 0, false);
+          const start_ = options.start===''?0:TextTools.findIndex(x, re, 0, true);
+          const end = options.end===''?x.length:TextTools.findIndex(x, new RegExp(options.end), start_, true);
+          return x.slice(start, end);
+        }) : ((x) => {
+          const start = options.start===''?0:TextTools.findIndex(x, new RegExp(options.start), 0, true);
+          const end = options.end===''?x.length:TextTools.findIndex(x, new RegExp(options.end), start, false);
+          return x.slice(start, end);
+        })
+      if (options.eachLine) {
+        return TextTools.eachLine(text, fn);
+      }
+      return fn(text);
+    },
+    options: {
+      start: '',
+      end: '',
+      inclusive: false,
+      eachLine: true,
+    }
+  },{
+    name: 'Join Lines',
+    run(text, options) {
+      return text.split(LINE_RE).join(options.separator);
+    },
+    options: {
+      separator: ' ',
+    }
+  },{
+    name: 'Split Lines',
+    run(text, options) {
+      if (options.regex==='') return text;
+      return text.split(new RegExp(options.regex, "g")).join('\n');
+    },
+    options: {
+      regex: ',',
+    }
+  },{
+    name: 'Reverse Lines',
+    run(text, options) {
+      if (options.eachLine) {
+        return text.split(LINE_RE).map(x => [...x].reverse().join('')).join('\n');
+      }
+      return text.split(LINE_RE).reverse().join('\n');
+    },
+    options: {
+      eachLine: false,
+    }
+  },{
+    name: 'Classify',
+    run(text, options) {
+      const b62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let i = 0;
+      const map = {};
+      const re = options.punctuation ? /[^\s,:;.!?-]/g : /[^\s]/g;
+      const result = options.enumerate 
+        ? text.replaceAll(re, m=>(map[m] ?? (map[m]=(i++)+1))+' ')
+        : text.replaceAll(re, m=>map[m] ?? (map[m]=b62[i++]));
+      if (options.outputMap) {
+        return FormatResults.object(map)
+      }
+      return result;
+    },
+    options: {
+      punctuation: false,
+      enumerate: false,
+      outputMap: false,
+    }
+  },{
+    name: 'Cypher',
+    run(text, options) {
+      let output = '';
+      const ai = options.caseSensitive ? options.inputAlphabet : options.inputAlphabet.toLowerCase();
+      const matchCase = (a,b) => a === a.toUpperCase() ? b.toUpperCase() : b;
+      const oi = (a,b) => options.caseSensitive ? matchCase(a,b) : b;
+      for (const c of text) {
+        const i = ai.indexOf(options.caseSensitive ? c : c.toLowerCase());
+        if (i == -1) {
+          output += c;
+          continue;
+        }
+        output += oi(c, options.outputAlphabet[i%options.outputAlphabet.length]);
+      }
+      return output;
+    },
+    options: {
+      inputAlphabet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      outputAlphabet: 'NOPQRSTUVWXYZABCDEFGHIJKLM',
+      caseSensitive: false,
+    }
+  },{
+    name: 'Entropy',
+    run(text, options) {
+      if (options.eachLine) return TextTools.eachLine(text, TextTools.shannon);
+      return TextTools.shannon(text);
+    },
+    options: {
+      eachLine: true,
+    }
+  },{
+    name: 'N-Grams',
+    run(text, options) {
+      if (options.size==0) return '';
+      if (options.lowercase) text = text.toLowerCase();
+      if (options.by=='words') {
+        return TextTools.wordNgrams(text, options.size, options.punctuation);
+      }
+      if (options.by=='characters') {
+        if (options.size < -1) {
+          let ngrams = '', n=-options.size+1;
+          for (let i = 2; i < n; i++) {
+            ngrams += TextTools.characterNgrams(text, i, options.punctuation)+'\n'
+          }
+          return ngrams.trim();
+        } else {
+          return TextTools.characterNgrams(text, options.size, options.punctuation, options.whitespace);
+        }
+      }
+    },
+    options: {
+      by: ['words','characters'],
+      size: 2,
+      lowercase: true,
+      punctuation: false,
+      whitespace: false,
+    }
+  },{
+    name: 'Transpose',
+    run(text, options) {
+      const lines = [];
+      text.split(LINE_RE).forEach(line => lines.push(line.split(options.inputSeparator)));
+      const max = Math.max(...lines.map(x=>x.length));
+      let result = '';
+      for (let i = 0; i < max; i++) {
+        result += lines.map(x=>x[i]).join(options.outputSeparator)+'\n'
+      }
+      return result;
+    },
+    options: {
+      inputSeparator: ': ',
+      outputSeparator: '',
+    }
+  },{
+    name: 'Change Case',
+    run(text, options) {
+      if (options.to=='lower') return text.toLowerCase();
+      if (options.to=='upper') return text.toUpperCase();
+      if (options.to=='title') return text.replaceAll(WORD_RE, m => m.charAt(0).toUpperCase()+m.slice(1))
+    },
+    options: {
+      to: ['lower','upper','title'],
+    }
+  },{
+    name: 'Concatenate',
+    run(text, options) {
+      if (options.eachLine) return TextTools.eachLine(text, line => options.before+line+options.after);
+      return options.before+text+options.after
+    },
+    options: {
+      before: '',
+      after: '',
+      eachLine: true,
+    }
+  },{
+    name: 'Repeat',
+    run(text, options) {
+      const times = Math.max(options.times, 0);
+      if (options.eachLine) return TextTools.eachLine(text, line => Array(times).fill(line).join(options.separator));
+      return Array(times).fill(text).join(options.separator);
+    },
+    options: {
+      times: 2,
+      eachLine: true,
+      separator: '',
+    }
+  },{
+    name: 'Find Duplicates',
+    run(text, options) {
+      let count = options.count;
+      if (options.exactly && count > 0) count = -count;
+      if (options.lowercase) text = text.toLowerCase()
+      if (options.eachLine) return TextTools.eachLine(text, x => TextTools.duplicate(x, options.by, count));
+      return TextTools.duplicate(text, options.by, count);
+    },
+    options: {
+      by: ['words','characters','lines'],
+      count: 2,
+      exactly: false,
+      eachLine: false,
+      lowercase: true,
+    }
+  }])
+})
+</script>
+</body>
+</html>
