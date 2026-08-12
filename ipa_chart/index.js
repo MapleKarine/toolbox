@@ -45,8 +45,9 @@ function renderHTML(value) {
   }
 
   output.innerHTML = 
-    renderConsonants(segments.filter(x=>!x.vowel),settings)+
-    renderVowels(segments.filter(x=>x.vowel),settings);
+    renderConsonants(segments.filter(x=>!x.vowel),settings)+`<div class="horizontal">`+
+    renderVowels(segments.filter(x=>x.vowel&&x.diphthong===undefined),settings)+
+    renderVowels(segments.filter(x=>x.vowel&&x.diphthong!==undefined),settings)+`</div>`;
   container.appendChild(output);
 
   if (settings.theme) container.classList.add('theme-'+settings.theme);

@@ -367,7 +367,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 	}
 
 	const usedSet = new Set();
-
+	const headers = [];
 
 	for (const moa of DEFAULT_MOA) {
 		let tr = document.createElement('tr');
@@ -378,22 +378,36 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 
 		if (moacons.length == 0) continue;
 
-		const th = document.createElement('th');
+		let th = document.createElement('th');
 		th.innerText = toTitleCase(moa, settings.shortNames);
 		th.style.whiteSpace = 'nowrap';
 
+		let aspirated = false;
+		if (settings.voicingRows && moa.startsWith('aspirated')) {
+			aspirated = true;
+		}
+
+		const addHeader = (n) => {
+			if (aspirated) {
+				headers[headers.length-1].rowSpan += n
+				return;
+			}
+			tr.appendChild(th);
+			headers.push(th)
+		}
+
 		const voiced = moacons.filter(x => x.voice >= 0);
 		if (settings.voicingRows && moacons.length == voiced.length) {
-			tr.appendChild(th);
+			addHeader(1)
 			tr2 = tr;
 			tr = null;
 		} else if (settings.voicingRows && voiced.length > 0) {
 			tr2 = document.createElement('tr');
 			table.appendChild(tr2);
-			tr.appendChild(th);
+			addHeader(2)
 			th.rowSpan = 2;
 		} else {
-			tr.appendChild(th);
+			addHeader(1)
 		}
 		for (const poa of DEFAULT_POA) {
 			const poacons = moacons.filter(x => x.poa == poa);

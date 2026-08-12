@@ -272,6 +272,39 @@ const IPA_VOWELS_FORMANT = {
 	'ɒ': [22, 2.0 , 2.5],
 }
 
+const IPA_VOWELS_FORMANT2 = {
+	'i': [1 , 0.0 , 0.0],
+	'e': [2 , 0.0 , 1.0],
+	'ɛ': [3 , 0.0 , 2.0],
+	'ε': [3 , 0.0 , 2.0],
+	'a': [4 , 0.0 , 3.0],
+	'ɑ': [5 , 2.0 , 3.0],
+	'α': [5 , 2.0 , 3.0],
+	'ɔ': [6 , 2.0 , 2.0],
+	'o': [7 , 2.0 , 1.0],
+	'u': [8 , 2.0 , 0.0],
+	'ɯ': [21, 1.33, 0.0],
+	'ɨ': [9 , 1.0, 0.0],
+	'ʉ': [9 , 1.0, 0.0],
+	'ɤ': [10, 1.28, 1.0],
+	'ɵ': [10, 1.28, 1.0],
+	'ə': [11, 1.0 , 1.5],
+	'ʌ': [12, 1.20, 2.0],
+	'ɞ': [12, 1.20, 2.0],
+	'ɪ': [13, 0.33, 0.5],
+	'ʏ': [13, 0.33, 0.5],
+	'ʊ': [14, 1.66, 0.5],
+	'ɐ': [15, 1.0 , 2.5],
+	'æ': [16, 0.0 , 2.5],
+	'ɶ': [16, 0.0 , 2.5],
+	'y': [18, 0.66, 0.0],
+	'ɘ': [19, 0.71, 1.0],
+	'ø': [19, 0.71, 1.0],
+	'œ': [20, 0.80, 2.0],
+	'ɜ': [20, 0.80, 2.0],
+	'ɒ': [22, 2.0 , 2.5],
+}
+
 
 
 const MOA_KEYWORDS = [
@@ -470,6 +503,12 @@ function getCardinalLayout(settings) {
 	if (settings.layout === 'formant')
 		return IPA_VOWELS_FORMANT;
 
+	if (settings.layout === 'formant2')
+		return settings.centralLowVowel ? {...IPA_VOWELS_FORMANT2,
+			'a': [17, 1.0, 3.0],
+			'æ': [4, 0.0, 3.0]
+		} : IPA_VOWELS_FORMANT2;
+
 	return settings.centralLowVowel ? IPA_VOWELS_CENTRAL_A : IPA_VOWELS;
 }
 
@@ -555,7 +594,10 @@ function getPosition(position, settings, error) {
 
 			item = {label: ipa[1], voice, poa, moa, poamods, moamods, vowel: false}
 		} else {
-			item = {label: ipa[1], cardinal: vowel[0], x: vowel[1], y: vowel[2], vowel: true};
+			let diphthong = s.slice(1);
+			diphthong = Object.keys(chart).find(x => diphthong.includes(x));
+			diphthong = chart[diphthong]??null;
+			item = {label: ipa[1], cardinal: vowel[0], x: vowel[1], y: vowel[2], diphthong, vowel: true};
 		}
 
 		position = position.replace(ipa[0],'').trim()
@@ -641,6 +683,32 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 			continue;
 		}
 
+		const matchDip = line.match(/^add\s+(?:(?:dot\s+)?(left|right))?\s*from\s*(\[[^\]]+\]|\([^)]+\)|[^"]+)\s*to\s*(\[[^\]]+\]|\([^)]+\)|[^"]+)\s*(?:"([^"]*)")?/m);
+		if (matchDip) {
+			const dot = matchDip[1]??'middle';
+			const position1 = getPosition(matchDip[2]??'', settings, error);
+			const position2 = getPosition(matchDip[3]??'', settings, error);
+			let label = matchDip[4];
+
+			if (!position1 || !position1.vowel) { error(`Invalid vowel position ‘${matchDip[2]}’`); continue; }
+			if (!position2 || !position2.vowel) { error(`Invalid vowel position ‘${matchDip[3]}’`); continue; }
+
+			if (label === undefined) {
+				if (!position1.label) {
+					error(`Error rendering line ‘${line}’: Missing label`);
+					continue;
+				}
+				label = position1.label+position2.label;
+			}
+
+			vowels.push({
+				...position1,
+				label, plabel: position1.label, vowel: position1.vowel, x: position1.x, y: position1.y, 
+				diphthong: [position2.cardinal, position2.x, position2.y], dot,
+			});
+			continue;
+		}
+
 		const match = line.match(/^add\s+(?:(?:dot\s+)?(left|right))?\s*(\[[^\]]+\]|\([^)]+\)|[^"]+)\s*(?:"([^"]*)")?/m);
 		if (!match) {
 			nonCmdLines.push(line);
@@ -682,7 +750,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 	}
 
 	
-	nonCmdLines.join(' ').replaceAll(/\s+"/g,'"').split(/[\s,]+/g)
+	nonCmdLines.join(' ').replaceAll(/\s+"/g,'"').replaceAll(/"[^"]*"/g,m => m.replaceAll(' ', '\u2420')).split(/[\s,]+/g)
 		.forEach(v => {
 			if (!v.trim()) return;
 
@@ -690,13 +758,14 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 
 			if (v.match(/"([^"]+)"/)) {
 				v = v.match(/"([^"]+)"/)[1]
+				v = v.replaceAll('\u2420', '\xa0')
 			}
 
 			if (!p) {
 				vowels.push({label: v, vowel: false, voice: 0, moa: 'undefined', poa: 'undefined'});
 				return;
 			}
-			if (!p.cardinal) {
+			if (!p.cardinal || p.diphthong) {
 				vowels.push({...p, label: v, plabel: p.label, vowel: p.vowel, x: p.x, y: p.y, dot: 'middle',
 				});
 				return;
