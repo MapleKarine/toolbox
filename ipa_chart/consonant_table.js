@@ -349,6 +349,7 @@ const renderConsonants = (consonants, settings=DEFAULT_SETTINGS) => {
 			label = b
 			i = findIndex(DEFAULT_MOA, a);
 			consonants.forEach(x => {if (x.moa == k) x.moa = b});
+			if (DEFAULT_MOA.includes(b)) DEFAULT_MOA = DEFAULT_MOA.filter(x=>x!=b);
 		} else {
 			i = findIndex(DEFAULT_MOA, mods[0]);
 		}
