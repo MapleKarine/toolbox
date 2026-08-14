@@ -754,7 +754,7 @@ function parse(source, settings=DEFAULT_SETTINGS, error) {
 		.forEach(v => {
 			if (!v.trim()) return;
 
-			const p = getPosition(`[${v}]`, settings, error);
+			const p = getPosition(`[${v.replace(/"([^"]+)"/, '')}]`, settings, error);
 
 			if (v.match(/"([^"]+)"/)) {
 				v = v.match(/"([^"]+)"/)[1]
